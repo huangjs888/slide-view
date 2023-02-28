@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2021-03-17 16:23:00
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-02-20 10:58:17
+ * @LastEditTime: 2023-02-28 14:07:27
  * @Description: ******
  */
 
@@ -26,6 +26,42 @@ const item = new SlideView({
       color: '#fff',
       background: '#3D83E5',
       data: { id: 1 },
+      position: 'left',
+    },
+    {
+      text: '不显示',
+      color: '#fff',
+      background: '#EEA151',
+      data: { id: 2 },
+      position: 'left',
+    },
+    {
+      className: 'ccc',
+      text: '删除',
+      color: '#fff',
+      background: '#E75E58',
+      data: { id: 3 },
+      position: 'left',
+    },
+    /*  */
+  ],
+});
+const cell2 = document.createElement('div');
+cell2.classList.add('slide-view-cell');
+const span2 = document.createElement('span');
+span2.innerText = '左滑菜单（image）';
+cell2.appendChild(span2);
+const item2 = new SlideView({
+  container: container[1],
+  className: 'BBB',
+  content: cell2,
+  buttons: [
+    /* {
+      className: 'bbb',
+      text: '标记为已读',
+      color: '#fff',
+      background: '#3D83E5',
+      data: { id: 1 },
     },
     {
       text: '不显示',
@@ -39,20 +75,21 @@ const item = new SlideView({
       color: '#fff',
       background: '#E75E58',
       data: { id: 3 },
+    }, */ {
+      className: 'ddd',
+      text: '置顶',
+      color: '#fff',
+      background: '#F2A945',
+      data: { id: 4 },
     },
-  ],
-});
-const cell2 = document.createElement('div');
-cell2.classList.add('slide-view-cell');
-const span2 = document.createElement('span');
-span2.innerText = '左滑菜单（image）';
-cell2.appendChild(span2);
-const item2 = new SlideView({
-  container: container[1],
-  className: 'BBB',
-  content: cell2,
-  buttons: [
     {
+      className: 'eee',
+      text: '精选',
+      color: '#fff',
+      background: '#217346',
+      data: { id: 5 },
+    },
+    /* {
       icon: {
         src: require('./icon/edit.png'),
         className: 'f f-ta',
@@ -64,6 +101,7 @@ const item2 = new SlideView({
       color: 'red',
       background: '#fff',
       data: { id: 4 },
+      position: 'left',
     },
     {
       icon: {
@@ -77,7 +115,8 @@ const item2 = new SlideView({
       color: 'black',
       background: '#fff',
       data: { id: 5 },
-    },
+      position: 'left',
+    }, */
   ],
 });
 const show = document.querySelector('#show');
