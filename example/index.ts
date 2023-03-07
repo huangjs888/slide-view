@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2021-03-17 16:23:00
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-02-28 14:07:27
+ * @LastEditTime: 2023-03-06 17:36:48
  * @Description: ******
  */
 
@@ -27,6 +27,7 @@ const item = new SlideView({
       background: '#3D83E5',
       data: { id: 1 },
       position: 'left',
+      confirmText: '确定？',
     },
     {
       text: '不显示',
@@ -34,6 +35,7 @@ const item = new SlideView({
       background: '#EEA151',
       data: { id: 2 },
       position: 'left',
+      confirmText: '确定？',
     },
     {
       className: 'ccc',
@@ -56,17 +58,19 @@ const item2 = new SlideView({
   className: 'BBB',
   content: cell2,
   buttons: [
-    /* {
+    {
       className: 'bbb',
       text: '标记为已读',
       color: '#fff',
       background: '#3D83E5',
+      confirmText: '确定？',
       data: { id: 1 },
     },
     {
       text: '不显示',
       color: '#fff',
       background: '#EEA151',
+      confirmText: '确定不显示',
       data: { id: 2 },
     },
     {
@@ -74,21 +78,24 @@ const item2 = new SlideView({
       text: '删除',
       color: '#fff',
       background: '#E75E58',
+      confirmText: '确定删除吗？',
       data: { id: 3 },
-    }, */ {
+    } /* {
       className: 'ddd',
       text: '置顶',
       color: '#fff',
       background: '#F2A945',
+      confirmText: '确定置顶吗？',
       data: { id: 4 },
     },
     {
       className: 'eee',
       text: '精选',
       color: '#fff',
+      confirmText: '确定精选',
       background: '#217346',
       data: { id: 5 },
-    },
+    }, */,
     /* {
       icon: {
         src: require('./icon/edit.png'),
@@ -240,13 +247,32 @@ if (destory) {
 }
 item.on('show', (e: SlideViewEvent) => console.log('item-show', e));
 item.on('hide', (e: SlideViewEvent) => console.log('item-hide', e));
-item.on('click', (e: SlideViewEvent) => console.log('item-click', e));
-item.on('button-click', (e: SlideViewEvent) =>
-  console.log('item-button-click', e),
-);
+item.on('press', (e: SlideViewEvent) => {
+  console.log('item-press', e);
+  item.element.classList.add('active');
+  location.href = 'http://www.baidu.com';
+});
+item.on('buttonPress', (e: SlideViewEvent) => {
+  console.log('item-button-press', e);
+  if (e.data.id === 3) {
+    const viewEl = item.element.parentNode as HTMLElement;
+    viewEl.style.opacity = '0';
+    viewEl.style.transition = 'opacity 0.8s';
+    setTimeout(() => {
+      item.destory();
+    }, 800);
+  }
+});
 item2.on('show', (e: SlideViewEvent) => console.log('item2-show', e));
 item2.on('hide', (e: SlideViewEvent) => console.log('item2-hide', e));
-item2.on('click', (e: SlideViewEvent) => console.log('item2-click', e));
-item2.on('button-click', (e: SlideViewEvent) =>
-  console.log('item2-button-click', e),
-);
+item2.on('press', (e: SlideViewEvent) => {
+  console.log('item2-press', e);
+  item2.element.classList.add('active');
+  location.href = '/';
+});
+item2.on('buttonPress', (e: SlideViewEvent) => {
+  console.log('item2-button-press', e);
+  if (e.data.id === 3) {
+    item2.destory();
+  }
+});

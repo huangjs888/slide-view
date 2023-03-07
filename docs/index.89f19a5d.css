@@ -4,7 +4,7 @@ body {
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden;
+  overflow: auto;
   background-color: #f0f0f0;
 }
 h2 {
@@ -27,6 +27,9 @@ h2 {
   display: flex;
   align-items: center;
 }
+.slide-view-example .slide-view-item .active .slide-view-cell {
+  background: #ddd;
+}
 .operate {
   margin: 16px;
 }
@@ -35,4 +38,4 @@ h2 {
 }
 
 
-/*# sourceMappingURL=index.69ed8c41.css.map*/
+/*# sourceMappingURL=index.89f19a5d.css.map*/

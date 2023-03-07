@@ -37,6 +37,7 @@ export default `
   right:auto;
   bottom: 0;
   text-align: center;
+  width: auto;
   height: 100%;
   white-space: nowrap;
   display: flex;
