@@ -4,26 +4,26 @@ body {
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow: auto;
-  background-color: #f0f0f0;
+  overflow: hidden;
+  background: #f0f0f0;
 }
 h2 {
-  margin-top: 16px;
+  margin-top: 5px;
   text-align: center;
   line-height: 24px;
 }
 .slide-view-example {
-  margin-top: 16px;
+  margin-top: 5px;
 }
 .slide-view-example .slide-view-item {
-  margin: 16px 0;
+  margin: 5px 0;
 }
 .slide-view-example .slide-view-item .slide-view-cell {
   width: 100%;
   height: 58px;
   padding: 0 15px;
   box-sizing: border-box;
-  background-color: #fff;
+  background: #fff;
   display: flex;
   align-items: center;
 }
@@ -31,11 +31,21 @@ h2 {
   background: #ddd;
 }
 .operate {
-  margin: 16px;
+  margin: 5px 10px;
 }
-.operate button {
-  margin: 16px;
+.operate .item-div {
+  margin: 5px 0;
+  display: flex;
+}
+.operate .item-div input,
+.operate .item-div button {
+  margin-left: 5px;
+}
+#info {
+  height: 24px;
+  line-height: 24px;
+  text-align: center;
 }
 
 
-/*# sourceMappingURL=index.89f19a5d.css.map*/
+/*# sourceMappingURL=index.05b4b131.css.map*/

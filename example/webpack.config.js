@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2021-10-21 16:11:29
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-02-20 12:20:38
+ * @LastEditTime: 2023-03-15 13:51:00
  * @Description: ******
  */
 
@@ -40,12 +40,12 @@ module.exports = (env, argv) => {
     module: {
       rules: [
         {
-          test: /\.(jpe?g|png|gif|bmp|ico)$/,
+          test: /\.(jpe?g|png|gif|bmp|ico|svg|webp)$/,
           use: {
             loader: 'file-loader',
             options: {
               // 设置打包后的图片名称和文件夹
-              name: '[name].[hash:8][ext]',
+              name: '[name].[hash:8].[ext]',
               esModule: false, // 不转为 esModule
               limit: 4 * 1024, // url-loader跟file-loader配置差不多，limit是url-loader的参数，当图片小于 limit 时，图片会被转为 base64
             },

@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-03-07 14:03:23
+ * @LastEditTime: 2023-03-17 15:08:48
  * @Description: ******
  */
 
@@ -15,281 +15,349 @@ import agent, {
 import {
   getDistance,
   rebounceSize,
+  getMarginSize,
+  getIconType,
   addClass,
+  removeClass,
   setStyle,
   styleInject,
 } from './util';
 import css from './css';
 
-const generate = function generate(
+const generateEl = function generateEl(
   container: HTMLElement | string,
   className?: string,
 ) {
   let tempContainer: HTMLElement | null;
-  if (typeof container === 'string') {
-    tempContainer = document.querySelector(container);
-  } else {
-    tempContainer = container;
+  try {
+    if (typeof container === 'string') {
+      tempContainer = document.querySelector(container);
+    } else {
+      tempContainer = container;
+    }
+  } catch (e) {
+    tempContainer = null;
   }
   if (!tempContainer || !(tempContainer instanceof HTMLElement)) {
     throw new Error('Please pass in a valid container element...');
   }
   styleInject(css);
-  const view = addClass(
+  const viewElement = addClass(
     document.createElement('div'),
-    `hjs-slide-view ${className || ''}`,
-  );
-  const element = addClass(
-    document.createElement('div'),
-    'hjs-slideview__middle',
+    `hjs-slideview ${className || ''}`,
   );
   const leftElement = addClass(
     document.createElement('div'),
     'hjs-slideview__left',
   );
-  leftElement.appendChild(
-    addClass(document.createElement('div'), 'hjs-slideview__buttons'),
-  );
+  viewElement.appendChild(leftElement);
   const rightElement = addClass(
     document.createElement('div'),
     'hjs-slideview__right',
   );
-  rightElement.appendChild(
-    addClass(document.createElement('div'), 'hjs-slideview__buttons'),
+  viewElement.appendChild(rightElement);
+  const contentElement = addClass(
+    document.createElement('div'),
+    'hjs-slideview__content',
   );
-  view.appendChild(leftElement);
-  view.appendChild(element);
-  view.appendChild(rightElement);
+  viewElement.appendChild(contentElement);
   tempContainer.innerHTML = '';
-  tempContainer.appendChild(view);
-  return element;
+  tempContainer.appendChild(viewElement);
+  return [viewElement, contentElement, leftElement, rightElement];
+};
+
+const confirmStyle = function (
+  actionStyle: ActionStyle,
+  actionItem: MergeActionItem,
+  isConfirm: boolean = false,
+) {
+  const {
+    element,
+    confirm = {}, // isConfirm为true，confirm必然存在
+    ...rest
+  } = actionItem;
+  let { text, icon, color, background, className } = rest;
+  if (isConfirm) {
+    // 如果icon不存在，则不存在该确认，如果icon存在，则取确认icon，若确认icon不存在，则仍然取icon
+    icon = icon && (confirm.icon || icon);
+    text = text && (confirm.text || text);
+    color = color && (confirm.color || color);
+    background = background && (confirm.background || background);
+    className = className && (confirm.className || className);
+  }
+  if (actionStyle === 'rect') {
+    setStyle(element.parentNode as HTMLElement, {
+      background: background || 'inherit',
+    });
+  }
+  setStyle(element, {
+    color: color || 'inherit',
+    background: background || 'inherit',
+    boxShadow: `0px 0px 9px -2px ${background || 'inherit'}`,
+  });
+  addClass(
+    removeClass(
+      element,
+      isConfirm
+        ? rest.className || ''
+        : confirm.className || rest.className || '',
+    ),
+    className || '',
+  );
+  if (icon) {
+    const iconEl = element.firstChild as HTMLElement;
+    const type = getIconType(icon);
+    if (type === 'img') {
+      (iconEl as HTMLImageElement).src = icon;
+    } else if (type === 'i') {
+      iconEl.className = icon;
+    } else {
+      iconEl.innerHTML = icon;
+    }
+  }
+  if (text) {
+    const textEl = element.lastChild as HTMLElement;
+    textEl.innerText = text;
+  }
 };
 
 const cTransform = function cTransform(
   this: SlideView,
-  index: number,
-  confirm: boolean,
+  confirm: Confirm,
+  isConfirm: boolean,
   rebSize: number = 0,
   duration: number = this.duration,
 ) {
-  const { _buttons, _translateX } = this;
-  if (!_buttons || !_buttons.length) {
+  const { contentEl, leftActions, rightActions } = this;
+  if (
+    !contentEl ||
+    ((!leftActions || leftActions.disable) &&
+      (!rightActions || rightActions.disable))
+  ) {
     return;
   }
-  // 前面已有按钮的滑动距离
-  let leftTransformTotal = 0;
-  let rightTransformTotal = 0;
-  for (let i = _buttons.length - 1; i >= 0; i--) {
-    const { element: btnEl, width, position, slideOut } = _buttons[i];
-    const factor = _translateX === 0 ? 0 : _translateX / Math.abs(_translateX);
-    if (i === index) {
-      // 当前的按钮将进行变换展示
-      const btnChild = btnEl.firstChild as HTMLElement;
-      setStyle(btnChild.firstChild as HTMLElement, {
-        display: confirm ? 'none' : 'block',
-      });
-      setStyle(btnChild.lastChild as HTMLElement, {
-        display: confirm ? 'block' : 'none',
-      });
-      const transformx = confirm
-        ? _translateX
-        : factor *
-          (width +
-            (position === 'left' ? leftTransformTotal : rightTransformTotal));
-      setStyle(btnEl, {
-        width: confirm
-          ? Math.abs(_translateX + rebSize * factor)
-          : duration > 0 && !slideOut
-          ? width
-          : 'auto',
-        transform: `translate3d(${transformx + rebSize * factor}px, 0, 0)`,
-        transition:
-          duration <= 0 ? '' : `width ${duration}s, transform ${duration}s`,
-      });
-      if (!confirm && !slideOut && duration > 0) {
-        // 因为width直接设置auto，是没有动画过程的
-        onOnceTransitionEnd(btnEl, () =>
-          setStyle(btnEl, {
-            width: 'auto',
-          }),
-        );
+  const { timing, _translateX } = this;
+  const { index, direction } = confirm;
+  // 这里注意：在调用hideButton隐藏按钮之后再执行该恢复方法，_translateX等于0了，所以无需再判断
+  const factor = _translateX === 0 ? 0 : _translateX / Math.abs(_translateX);
+  const aTransform = ({ items }: MergeAction) => {
+    // 前面已有按钮的占比距离
+    let transformTotal = 0;
+    const len = items.length - 1;
+    for (let i = len; i >= 0; i--) {
+      const { wrapElement, element, width, margin } = items[i];
+      const multi = len === 0 ? 2 : 1;
+      // 如果是仅有一个按钮，确认的时候宽度设置2倍变化
+      if (multi === 2) {
+        setStyle(contentEl, {
+          transform: `translate3d(${
+            isConfirm ? multi * _translateX : _translateX
+          }px, 0, 0)`,
+          transition:
+            duration <= 0 ? '' : `transform ${duration}s ${timing} 0s`,
+        });
       }
-    } else if (i > index) {
-      // 注意，这里不分position，因为大于index的都是压在上面的，压在下面的不需要变换
-      // 压在上面的收起
-      const transformx = confirm
-        ? 0
-        : factor *
-          (width +
-            (position === 'left' ? leftTransformTotal : rightTransformTotal));
-      setStyle(btnEl, {
-        transform: `translate3d(${transformx}px, 0, 0)`,
-        transition: duration <= 0 ? '' : `transform ${duration}s`,
-      });
+      if (i === index) {
+        let transformx = 0;
+        if (isConfirm) {
+          transformx = multi * _translateX + rebSize * factor;
+        } else {
+          transformx = (width + transformTotal) * factor;
+        }
+        setStyle(wrapElement, {
+          transform: `translate3d(${transformx}px, 0, 0)`,
+          transition:
+            duration <= 0 ? '' : `transform ${duration}s ${timing} 0s`,
+        });
+        setStyle(element, {
+          width: isConfirm ? Math.abs(multi * _translateX) - margin : 'auto',
+        });
+      } else if (i > index) {
+        let transformx = 0;
+        if (!isConfirm) {
+          transformx = (width + transformTotal) * factor;
+        }
+        // 大于index的一定都是压在上面的，压在上面的需要收起，而小于index压在下面的不需要变化
+        setStyle(wrapElement, {
+          transform: `translate3d(${transformx}px, 0, 0)`,
+          transition:
+            duration <= 0 ? '' : `transform ${duration}s ${timing} 0s`,
+        });
+      }
+      transformTotal += width;
     }
-    if (position === 'left') {
-      leftTransformTotal += width;
-    } else {
-      rightTransformTotal += width;
+  };
+  // 放入下一帧执行
+  window.requestAnimationFrame(() => {
+    if (direction === 'left' && leftActions) {
+      aTransform(leftActions);
     }
-  }
+    if (direction === 'right' && rightActions) {
+      aTransform(rightActions);
+    }
+  });
 };
 
 const transform = function transform(
   this: SlideView,
   moveX: number,
-  positive: boolean,
   status: number,
   duration: number = this.duration,
 ) {
-  const { element, _buttons, _slideRange } = this;
-  const [slideMin, slideMax] = _slideRange || [0, 0];
-  if (!_buttons || !_buttons.length) {
+  const { contentEl, leftActions, rightActions } = this;
+  if (
+    !contentEl ||
+    ((!leftActions || leftActions.disable) &&
+      (!rightActions || rightActions.disable))
+  ) {
     return;
   }
-  setStyle(element, {
-    transform: `translate3d(${moveX}px, 0, 0)`,
-    transition: duration <= 0 || status === 2 ? '' : `transform ${duration}s`,
-  });
-  // 前面已有按钮的占比距离
-  let leftTransformTotal = 0;
-  let rightTransformTotal = 0;
-  for (let i = _buttons.length - 1; i >= 0; i--) {
-    const { element: btnEl, width, lastOne, position, icon } = _buttons[i];
-    const btnChild = btnEl.firstChild as HTMLElement;
-    // 当前按钮需要滑出的占比距离
-    const transformb =
-      (width / Math.abs(position === 'left' ? slideMax : slideMin)) * moveX;
-    // 当前按钮滑出距离应该是占比距离+前面已有按钮的占比距离
-    const transformx =
-      transformb +
-      (position === 'left' ? leftTransformTotal : rightTransformTotal);
-    // 左边或右边的最后一个按钮
-    // (leftTransformTotal === 0 && position === 'left') ||  (rightTransformTotal === 0 && position === 'right')
-    if (lastOne) {
-      if (!icon) {
-        setStyle(btnChild, {
-          [`padding-${position}`]:
-            (Math.abs(transformb) <= width
-              ? 0
-              : Math.abs(status === 1 ? moveX : transformx) - width) + 16,
+  const { timing, elWidth } = this;
+  const aTransform = (
+    { items, style, totalWidth }: MergeAction,
+    flexAlign: string,
+  ) => {
+    // 前面已有按钮的占比距离
+    let transformTotal = 0;
+    const len = items.length - 1;
+    for (let i = len; i >= 0; i--) {
+      const { wrapElement, element, width, margin } = items[i];
+      // 当前按钮需要滑出的占比距离
+      const transformb = (width / totalWidth) * moveX;
+      // 当前按钮滑出距离应该是占比距离+前面已有按钮的占比距离
+      const transformx = transformb + transformTotal;
+      // 左边或右边的最后一个按钮
+      if (i === len) {
+        setStyle(wrapElement, {
+          transform: `translate3d(${
+            status === 1 ? moveX : transformx
+          }px, 0, 0)`,
           transition:
-            duration <= 0
-              ? ''
-              : `padding-${position} ${duration}s ease ${
-                  duration *
-                  (positive ? 1 : -1) *
-                  (position === 'right' ? 1 : -1)
-                }s`,
+            duration <= 0 ? '' : `transform ${duration}s ${timing} 0s`,
         });
+        if (style === 'round') {
+          setStyle(element, {
+            width: status === 1 ? elWidth - margin : 'auto',
+            justifyContent: status === 1 ? `flex-${flexAlign}` : 'center',
+          });
+        }
       } else {
-        setStyle(btnChild, {
-          [`padding-${position}`]:
-            Math.abs(transformb) > width && status === 1
-              ? Math.abs(moveX) - width
-              : 0,
-          transition: duration <= 0 ? '' : `padding-${position} ${duration}s`,
-        });
-      }
-      setStyle(btnEl, {
-        transform: `translate3d(${status === 1 ? moveX : transformx}px, 0, 0)`,
-        transition: duration <= 0 ? '' : `transform ${duration}s`,
-      });
-    } else {
-      if (!icon) {
-        setStyle(btnChild, {
-          [`padding-${position}`]:
-            (Math.abs(transformb) <= width ? 0 : Math.abs(transformx) - width) +
-            16,
+        setStyle(wrapElement, {
+          transform: `translate3d(${transformx}px, 0, 0)`,
           transition:
             duration <= 0 || status === 2
               ? ''
-              : `padding-${position} ${duration}s ease ${
-                  duration *
-                  (positive ? 1 : -1) *
-                  (position === 'right' ? 1 : -1)
-                }s`,
+              : `transform ${duration}s ${timing} 0s`,
         });
       }
-      setStyle(btnEl, {
-        transform: `translate3d(${transformx}px, 0, 0)`,
-        transition:
-          duration <= 0 || status === 2 ? '' : `transform ${duration}s`,
-      });
+      // 累计已滑出按钮的占比距离
+      transformTotal += transformb;
     }
-    // 累计已滑出按钮的占比距离
-    if (position === 'left') {
-      leftTransformTotal += transformb;
-    } else {
-      rightTransformTotal += transformb;
+  };
+  // 放入下一帧执行（move的时候使用这个节能而且不抖动）
+  window.requestAnimationFrame(() => {
+    setStyle(contentEl, {
+      transform: `translate3d(${moveX}px, 0, 0)`,
+      transition:
+        duration <= 0 || status === 2
+          ? ''
+          : `transform ${duration}s ${timing} 0s`,
+    });
+    if (moveX >= 0 && leftActions) {
+      aTransform(leftActions, 'end');
     }
-  }
+    if (moveX <= 0 && rightActions) {
+      aTransform(rightActions, 'start');
+    }
+  });
 };
 
 const start = function start(this: SlideView, e: AgentEvent) {
-  if (!this._buttons || this.disable) {
+  const { leftActions, rightActions } = this;
+  if (
+    (!leftActions || leftActions.disable) &&
+    (!rightActions || rightActions.disable)
+  ) {
     return;
   }
+  const { point } = e;
   this._isMoving = true;
+  this._startPoint = point;
   this._startTX = this._translateX;
-  this._startPoint = e.point;
-  this._slideAngle = 0;
   this._slideStatus = 0;
   this._timeStamp = 0;
 };
 
 const move = function move(this: SlideView, e: AgentEvent) {
-  if (!this._buttons || this.disable || !this._isMoving || !this._startPoint) {
+  const { _isMoving, _startPoint, leftActions, rightActions } = this;
+  if (
+    !_isMoving ||
+    !_startPoint ||
+    ((!leftActions || leftActions.disable) &&
+      (!rightActions || rightActions.disable))
+  ) {
     return;
   }
-  const pageX = e.point[0] - this._startPoint[0];
-  const pageY = e.point[1] - this._startPoint[1];
+  const { point, sourceEvent } = e;
+  const pageX = point[0] - _startPoint[0];
+  const pageY = point[1] - _startPoint[1];
   // 左侧45度角为界限，大于45度则允许水平滑动
-  if (this._slideAngle === 0) {
-    this._slideAngle = Math.abs(pageX) - Math.abs(pageY);
-  }
-  if (this._slideAngle < 0) {
+  if (Math.abs(pageX) - Math.abs(pageY) < 0) {
     return;
+  }
+  const {
+    _slideStatus,
+    _timeStamp,
+    _startTX,
+    _translateX,
+    elWidth,
+    _confirm,
+    friction,
+    duration: _duration,
+  } = this;
+  let slideMin = 0;
+  let rightOvershoot = false;
+  if (rightActions && !rightActions.disable) {
+    slideMin = -rightActions.totalWidth;
+    rightOvershoot = rightActions.overshoot;
+  }
+  let slideMax = 0;
+  let leftOvershoot = false;
+  if (leftActions && !leftActions.disable) {
+    slideMax = leftActions.totalWidth;
+    leftOvershoot = leftActions.overshoot;
   }
   // 滑动距离
   let moveX = 0;
   let duration = 0;
-  const slideX = this._startTX + pageX;
-  const [slideMin, slideMax] = this._slideRange || [0, 0];
+  const slideX = _startTX + pageX;
   if (slideX <= slideMin) {
     if (slideMin === 0) {
       // 如果最小等于0，表示只有左边按钮，则可以重置初始值
-      this._startPoint = e.point;
-      this._startTX = this._translateX;
-      this._slideAngle = 0;
+      this._startPoint = point;
+      this._startTX = _translateX;
       this._slideStatus = 0;
       this._timeStamp = 0;
       moveX = 0;
     } else {
-      if (this.fullSlide) {
-        const elWidth = this.element.getBoundingClientRect().width;
+      if (rightOvershoot) {
         const threshold = -Math.max(elWidth * 0.75, Math.abs(slideMin));
         const timeStamp =
-          e.sourceEvent instanceof MouseEvent
-            ? e.sourceEvent.timeStamp
-            : e.sourceEvent.sourceEvent.timeStamp;
+          sourceEvent instanceof MouseEvent
+            ? sourceEvent.timeStamp
+            : sourceEvent.sourceEvent.timeStamp;
         if (slideX <= threshold) {
-          if (this._slideStatus !== 1) {
+          if (_slideStatus !== 1) {
             this._timeStamp = timeStamp;
             this._slideStatus = 1;
           }
-          moveX =
-            (this.rebounce ? rebounceSize(slideX - threshold) : 0) -
-            elWidth * 0.95;
-          duration = Math.max(
-            0,
-            this.duration - (timeStamp - this._timeStamp) / 1000,
-          );
+          moveX = rebounceSize(slideX - threshold, friction) - elWidth * 0.95;
+          duration = Math.max(0, _duration - (timeStamp - _timeStamp) / 1000);
         } else {
-          if (this._slideStatus === 0) {
+          if (_slideStatus === 0) {
             // 从[slideMin,0]进入[threshold,slideMin]之间
             this._timeStamp = 0;
-          } else if (this._slideStatus === 1) {
+          } else if (_slideStatus === 1) {
             // 从[-Infinity,threshold]进入[threshold,slideMin]之间
             this._timeStamp = timeStamp;
             this._slideStatus = 2;
@@ -297,14 +365,13 @@ const move = function move(this: SlideView, e: AgentEvent) {
           moveX = slideX;
           duration = Math.max(
             0,
-            this.duration / 2 - (timeStamp - this._timeStamp) / 1000,
+            _duration / 2 - (timeStamp - _timeStamp) / 1000,
           );
         }
       } else {
         moveX =
-          (this.rebounce
-            ? rebounceSize(slideX - Math.min(slideMin, this._startTX))
-            : 0) + Math.min(slideMin, this._startTX);
+          rebounceSize(slideX - Math.min(slideMin, _startTX), friction) +
+          Math.min(slideMin, _startTX);
       }
     }
   } else if (slideX < slideMax) {
@@ -315,37 +382,30 @@ const move = function move(this: SlideView, e: AgentEvent) {
   } else {
     if (slideMax === 0) {
       // 如果最大等于0，表示只有右边按钮，则可以重置初始值
-      this._startPoint = e.point;
-      this._startTX = this._translateX;
-      this._slideAngle = 0;
+      this._startPoint = point;
+      this._startTX = _translateX;
       this._slideStatus = 0;
       this._timeStamp = 0;
       moveX = 0;
     } else {
-      if (this.fullSlide) {
-        const elWidth = this.element.getBoundingClientRect().width;
+      if (leftOvershoot) {
         const threshold = Math.max(elWidth * 0.75, Math.abs(slideMax));
         const timeStamp =
-          e.sourceEvent instanceof MouseEvent
-            ? e.sourceEvent.timeStamp
-            : e.sourceEvent.sourceEvent.timeStamp;
+          sourceEvent instanceof MouseEvent
+            ? sourceEvent.timeStamp
+            : sourceEvent.sourceEvent.timeStamp;
         if (slideX >= threshold) {
-          if (this._slideStatus !== 1) {
+          if (_slideStatus !== 1) {
             this._timeStamp = timeStamp;
             this._slideStatus = 1;
           }
-          moveX =
-            (this.rebounce ? rebounceSize(slideX - threshold) : 0) +
-            elWidth * 0.95;
-          duration = Math.max(
-            0,
-            this.duration - (timeStamp - this._timeStamp) / 1000,
-          );
+          moveX = rebounceSize(slideX - threshold, friction) + elWidth * 0.95;
+          duration = Math.max(0, _duration - (timeStamp - _timeStamp) / 1000);
         } else {
-          if (this._slideStatus === 0) {
+          if (_slideStatus === 0) {
             // 从[0,slideMax]进入[slideMax,threshold]之间
             this._timeStamp = 0;
-          } else if (this._slideStatus === 1) {
+          } else if (_slideStatus === 1) {
             // 从[threshold,+Infinity]进入[slideMax,threshold]之间
             this._timeStamp = timeStamp;
             this._slideStatus = 2;
@@ -353,108 +413,202 @@ const move = function move(this: SlideView, e: AgentEvent) {
           moveX = slideX;
           duration = Math.max(
             0,
-            this.duration / 2 - (timeStamp - this._timeStamp) / 1000,
+            _duration / 2 - (timeStamp - _timeStamp) / 1000,
           );
         }
       } else {
         moveX =
-          (this.rebounce
-            ? rebounceSize(slideX - Math.max(slideMax, this._startTX))
-            : 0) + Math.max(slideMax, this._startTX);
+          rebounceSize(slideX - Math.max(slideMax, _startTX), friction) +
+          Math.max(slideMax, _startTX);
       }
     }
   }
-  if (this._confirmIndex !== -1) {
+  if (_confirm) {
     // 如果当前处于按钮确认状态，滑动之前需要先取消
-    cTransform.apply(this, [this._confirmIndex, false, 0, 0]);
-    this._confirmIndex = -1;
+    cTransform.apply(this, [_confirm, false, 0, 0]);
+    const { index, direction } = _confirm;
+    const actions =
+      direction === 'left'
+        ? leftActions
+        : direction === 'right'
+        ? rightActions
+        : null;
+    if (actions) {
+      confirmStyle(actions.style, actions.items[index]);
+    }
+    this._confirm = null;
   }
-  const positive = moveX > this._translateX;
+  moveX = (moveX > 0 ? 1 : -1) * Math.min(elWidth, Math.abs(moveX));
   this._translateX = moveX;
-  transform.apply(this, [moveX, positive, this._slideStatus, duration]);
+  transform.apply(this, [moveX, _slideStatus, duration]);
   return false; // 禁止垂直方向的滑动
 };
 
 const end = function end(this: SlideView, e: AgentEvent) {
+  const { _isMoving, _startPoint, leftActions, rightActions } = this;
   if (
-    !this._buttons ||
-    this.disable ||
-    !this._isMoving ||
-    this._slideAngle < 0 ||
-    !this._startPoint
+    !_isMoving ||
+    !_startPoint ||
+    ((!leftActions || leftActions.disable) &&
+      (!rightActions || rightActions.disable))
   ) {
     return;
   }
-  if (this.fullSlide && this._slideStatus === 1) {
-    const index = this._buttons.findIndex(
-      ({ lastOne, position }) =>
-        lastOne &&
-        ((this._translateX > 0 && position === 'left') ||
-          (this._translateX < 0 && position === 'right')),
-    );
-    buttonSlide.apply(this, [e, index]);
-  } else if (
-    this._translateX === 0 ||
-    // 这个判断是因为手势里默认移动距离在3px以内不算移动
-    getDistance(this._startPoint, e.point) < 3 ||
-    (this._translateX < 0 &&
-      (e.point[0] - this._startPoint[0] >= 0 ||
-        this._translateX > -this.throttle)) ||
-    (this._translateX > 0 &&
-      (e.point[0] - this._startPoint[0] <= 0 ||
-        this._translateX < this.throttle))
-  ) {
-    this.hideButton();
-  } else {
-    this.showButton(this._translateX > 0 ? 'left' : 'right');
-  }
   this._isMoving = false;
   this._startTX = 0;
-  this._startPoint = [0, 0];
-  this._slideAngle = 0;
+  this._startPoint = null;
   this._slideStatus = 0;
   this._timeStamp = 0;
-};
-
-const press = function press(this: SlideView, e: AgentEvent) {
-  // 事件只发生于按钮收起隐藏情况
-  if (this._translateX === 0) {
-    this.trigger('press', {
-      currentTarget: this.element,
-      timeStamp: Date.now(),
-      sourceEvent: e,
-    });
+  const { point } = e;
+  const { _slideStatus, _translateX } = this;
+  // 滑动距离为0（表示本身就是隐藏状态）或没有任何滑动（只是点了一下）不做任何操作
+  // 这个判断是因为手势里默认移动距离在3px以内不算移动
+  if (_translateX === 0 || getDistance(_startPoint, point) < 3) {
+    return;
   }
+  // 右边按钮
+  if (_translateX < 0 && rightActions) {
+    // 当前画出状态为1，则进行覆盖滑出行为
+    if (_slideStatus === 1 && rightActions.overshoot) {
+      buttonSlide.apply(this, [
+        e,
+        { index: rightActions.items.length - 1, direction: 'right' },
+      ]);
+      return;
+    }
+    // 右边按钮展示状态下往右滑动了，或者右边按钮未展示情况下，左滑出的距离不足滑出阈值
+    if (point[0] - _startPoint[0] > 0 || _translateX > -rightActions.throttle) {
+      this.hide();
+      return;
+    }
+  }
+  // 左边按钮
+  if (_translateX > 0 && leftActions) {
+    // 当前画出状态为1，则进行覆盖滑出行为
+    if (_slideStatus === 1 && leftActions.overshoot) {
+      buttonSlide.apply(this, [
+        e,
+        { index: leftActions.items.length - 1, direction: 'left' },
+      ]);
+      return;
+    }
+    // 左边按钮展示状态下往左滑动了，或者左边按钮未展示情况下，右滑出的距离不足滑出阈值
+    if (point[0] - _startPoint[0] < 0 || _translateX < leftActions.throttle) {
+      this.hide();
+      return;
+    }
+  }
+  // 其它情况均为展示按钮
+  this.show(_translateX > 0 ? 'left' : 'right');
 };
 
 const longPress = function longPress(this: SlideView, e: AgentEvent) {
-  // 事件只发生于按钮收起隐藏情况
-  if (this._translateX === 0) {
-    this.trigger('longPress', {
-      currentTarget: this.element,
-      timeStamp: Date.now(),
-      sourceEvent: e,
-    });
+  const { contentEl, _translateX } = this;
+  const { sourceEvent, currentTarget } = e;
+  let target = (
+    sourceEvent instanceof MouseEvent
+      ? sourceEvent.target
+      : sourceEvent.sourceEvent.target
+  ) as HTMLElement;
+  while (target !== currentTarget && target !== contentEl) {
+    target = target.parentNode as HTMLElement;
+  }
+  // 触发内容双按压事件
+  if (target === contentEl) {
+    // 收起时候则触发长按事件，未收起则收起
+    if (_translateX === 0) {
+      this.trigger('longPress', {
+        currentTarget: contentEl,
+        timeStamp: Date.now(),
+        sourceEvent: e,
+      });
+    } else {
+      this.hide();
+    }
   }
 };
 
 const doublePress = function doublePress(this: SlideView, e: AgentEvent) {
-  // 事件只发生于按钮收起隐藏情况
-  if (this._translateX === 0) {
-    this.trigger('doublePress', {
-      currentTarget: this.element,
-      timeStamp: Date.now(),
-      sourceEvent: e,
-    });
+  const { contentEl, _translateX } = this;
+  const { sourceEvent, currentTarget } = e;
+  let target = (
+    sourceEvent instanceof MouseEvent
+      ? sourceEvent.target
+      : sourceEvent.sourceEvent.target
+  ) as HTMLElement;
+  while (target !== currentTarget && target !== contentEl) {
+    target = target.parentNode as HTMLElement;
+  }
+  // 触发内容双按压事件
+  if (target === contentEl) {
+    // 收起时候则触发双按事件，未收起则收起
+    if (_translateX === 0) {
+      this.trigger('doublePress', {
+        currentTarget: contentEl,
+        timeStamp: Date.now(),
+        sourceEvent: e,
+      });
+    } else {
+      this.hide();
+    }
   }
 };
 
-const buttonPress = function buttonPress(this: SlideView, e: AgentEvent) {
-  // 表示按钮处于收起隐藏状态
-  if (this._translateX === 0 || !this._buttons) {
+const press = function press(this: SlideView, e: AgentEvent) {
+  const { contentEl, leftEl, rightEl, _translateX } = this;
+  const { sourceEvent, currentTarget } = e;
+  let target = (
+    sourceEvent instanceof MouseEvent
+      ? sourceEvent.target
+      : sourceEvent.sourceEvent.target
+  ) as HTMLElement;
+  while (
+    target !== currentTarget &&
+    target !== contentEl &&
+    target !== leftEl &&
+    target !== rightEl
+  ) {
+    target = target.parentNode as HTMLElement;
+  }
+  // 触发内容元素按压事件
+  if (target === contentEl) {
+    // 没有使用this._direction判断，是因为该值变化是要动画结束后变化，this._translateX变化是动画执行前
+    // 使用this._translateX判断可以保证，收起动画时点击可执行，展开动画执行时点击不可执行，this._direction正好相反
+    // 收起时候则触发按压事件，未收起则收起
+    if (_translateX === 0) {
+      this.trigger('press', {
+        currentTarget: contentEl,
+        timeStamp: Date.now(),
+        sourceEvent: e,
+      });
+    } else {
+      this.hide();
+    }
+  }
+  // 触发左边按钮按压事件
+  else if (target === leftEl) {
+    buttonPress.apply(this, [e, 'left']);
+  }
+  // 触发右边按钮按压事件
+  else if (target === rightEl) {
+    buttonPress.apply(this, [e, 'right']);
+  }
+};
+
+const buttonPress = function buttonPress(
+  this: SlideView,
+  event: AgentEvent,
+  direction: Direction,
+) {
+  const { _confirm, leftActions, rightActions, rebounce } = this;
+  if (
+    this._translateX === 0 ||
+    ((!leftActions || leftActions.disable) &&
+      (!rightActions || rightActions.disable))
+  ) {
     return;
   }
-  const { sourceEvent, currentTarget } = e;
+  const { sourceEvent, currentTarget } = event;
   let target = (
     sourceEvent instanceof MouseEvent
       ? sourceEvent.target
@@ -464,84 +618,129 @@ const buttonPress = function buttonPress(this: SlideView, e: AgentEvent) {
     target = target.parentNode as HTMLElement;
   }
   const index = +(target.getAttribute('data-index') || -1);
-  if (index >= 0 && this._buttons[index]) {
-    const { lastOne, confirm, slideOut, data } = this._buttons[index];
-    // 最后一个按钮单独处理
-    if (this.fullSlide && lastOne) {
-      buttonSlide.apply(this, [e, index, target]);
-      return;
-    }
-    // 如果是再次确认或者首次无需确认，则直接执行
-    let type: SlideViewEventType = 'buttonPress';
-    if (this._confirmIndex === index || !confirm) {
-      // 点击按钮后隐藏按钮（隐藏按钮里已处理取消确认情况）
-      if (slideOut) {
-        this.hideButton();
-      } else {
-        cTransform.apply(this, [index, false]);
-        this._confirmIndex = -1;
-      }
-    } else {
-      // 当前事件需要确认，设置回弹效果
-      if (this.rebounce) {
-        cTransform.apply(this, [index, true, SlideView.REBOUNCE_SIZE]);
-        onOnceTransitionEnd(this._buttons[index].element, () => {
-          cTransform.apply(this, [index, true]);
-        });
-      } else {
-        cTransform.apply(this, [index, true]);
-      }
-      this._confirmIndex = index;
-      type = 'buttonConfirm';
-    }
-    this.trigger(type, {
-      index,
-      data,
-      currentTarget: target,
-      timeStamp: Date.now(),
-      sourceEvent: e,
-    });
+  const actions: MergeAction | null =
+    direction === 'left' ? leftActions : rightActions;
+  if (index < 0 || !actions || actions.disable) {
+    return;
   }
+  const confirm: Confirm = { index, direction };
+  // 最后一个按钮单独处理
+  if (index === actions.items.length - 1 && actions.overshoot) {
+    buttonSlide.apply(this, [event, confirm, target]);
+    return;
+  }
+  const item = actions.items[index];
+  let eventType: IEventType = 'buttonPress';
+  // 确认之后二次点击（确保当前点击的即是正在确认的）
+  if (
+    _confirm &&
+    _confirm.index === index &&
+    _confirm.direction === direction
+  ) {
+    // 点击按钮后隐藏按钮（隐藏按钮里已处理取消确认情况）
+    if (item.collapse) {
+      this.hide();
+    } else {
+      // 取消确认
+      cTransform.apply(this, [confirm, false]);
+      confirmStyle(actions.style, item);
+      this._confirm = null;
+    }
+  } else {
+    if (item.confirm) {
+      this._confirm = confirm;
+      confirmStyle(actions.style, item, true);
+      // 设置回弹效果，第一个按钮和圆型按钮不需要
+      if (rebounce > 0 && actions.style === 'rect' && index !== 0) {
+        onOnceTransitionEnd(item.wrapElement, () => {
+          // 该事件执行时确保当前还处于确认状态，否则不能再执行
+          if (
+            this._confirm &&
+            this._confirm.index === confirm.index &&
+            this._confirm.direction === confirm.direction
+          ) {
+            cTransform.apply(this, [confirm, true]);
+          }
+        });
+        cTransform.apply(this, [confirm, true, rebounce]);
+      } else {
+        cTransform.apply(this, [confirm, true]);
+      }
+      eventType = 'buttonConfirm';
+    } else {
+      // 无需确认的点击（如果collapse，就点击后隐藏按钮，否则不做任何处理）
+      if (item.collapse) {
+        this.hide();
+      }
+    }
+  }
+  this.trigger(eventType, {
+    index,
+    data: item.data,
+    currentTarget: target,
+    timeStamp: Date.now(),
+    sourceEvent: event,
+  });
 };
 
 const buttonSlide = function buttonSlide(
   this: SlideView,
   event: AgentEvent,
-  index: number,
+  confirm: Confirm,
   target?: HTMLElement,
 ) {
-  // 表示按钮处于收起隐藏状态
-  if (this._translateX === 0 || !this._buttons || !this._buttons[index]) {
+  const { _translateX, elWidth, _confirm, leftActions, rightActions } = this;
+  const { index, direction } = confirm;
+  const actions =
+    direction === 'left'
+      ? leftActions
+      : direction === 'right'
+      ? rightActions
+      : null;
+  if (_translateX === 0 || !actions || actions.disable) {
     return;
   }
-  let type: SlideViewEventType = 'buttonPress';
-  const { element, confirm, slideOut, data } = this._buttons[index];
-  // 此时是滑满之后的二次点击
-  if (this._confirmIndex === index) {
-    if (slideOut) {
-      this.hideButton();
+  const item = actions.items[index];
+  let eventType: IEventType = 'buttonPress';
+  // 滑满之后二次点击（确保当前点击的即是正在确认的）
+  if (
+    _confirm &&
+    _confirm.index === index &&
+    _confirm.direction === direction
+  ) {
+    // 点击按钮后隐藏按钮（隐藏按钮里已处理取消确认情况）
+    if (item.collapse) {
+      this.hide();
     } else {
-      this.showButton(this._translateX > 0 ? 'left' : 'right');
-      this._confirmIndex = -1;
+      confirmStyle(actions.style, item);
+      this._confirm = null;
+      // 应该不做任何事情，因为这样的按钮一般用于destory，没必要再show
+      // this.show(_translateX > 0 ? 'left' : 'right');
     }
-  }
-  // 此时是滑动到最满，或者点最后一个按钮，滑满
-  else {
-    const moveX =
-      (this._translateX > 0 ? 1 : -1) *
-      this.element.getBoundingClientRect().width;
-    const positive = this._translateX < moveX;
+  } else {
+    // 无论是否确认都需要滑满
+    const moveX = (_translateX > 0 ? 1 : -1) * elWidth;
     this._translateX = moveX;
-    transform.apply(this, [moveX, positive, 1]);
-    if (confirm) {
-      type = 'buttonConfirm';
-      this._confirmIndex = index;
+    transform.apply(this, [moveX, 1]);
+    // 需要确认，触发确认事件
+    if (item.confirm) {
+      this._confirm = confirm;
+      confirmStyle(actions.style, item, true);
+      eventType = 'buttonConfirm';
+    } else {
+      // 无确认滑满情况
+      if (item.collapse) {
+        this.hide();
+      } else {
+        // 应该不做任何事情，因为这样的按钮一般用于destory，没必要再show
+        // this.show(_translateX > 0 ? 'left' : 'right');
+      }
     }
   }
-  this.trigger(type, {
+  this.trigger(eventType, {
     index,
-    data,
-    currentTarget: target || element,
+    data: item.data,
+    currentTarget: target || item.element,
     timeStamp: Date.now(),
     sourceEvent: event,
   });
@@ -550,401 +749,505 @@ const buttonSlide = function buttonSlide(
 class SlideView extends EventTarget<
   HTMLElement,
   AgentEvent | null,
-  SlideViewEventType,
-  SlideViewEvent
+  IEventType,
+  IEvent
 > {
-  static REBOUNCE_SIZE: number = 12; // 弹性尺寸
-  element: HTMLElement; // 触发滑动的元素
-  disable: boolean = false; // 禁止按钮滑出
+  element: HTMLElement | null; // 滑动视图元素
+  contentEl: HTMLElement | null; // 内容元素
+  leftEl: HTMLElement | null; // 左按钮元素
+  rightEl: HTMLElement | null; // 右按钮元素
+  leftActions: MergeAction | null = null; // 按钮集合
+  rightActions: MergeAction | null = null; // 按钮集合
+  friction: number = 0.6; // 摩擦因子(0-1的值)
+  rebounce: number = 12; // 弹性尺寸
   duration: number = 0.4; // 按钮滑出动画时间（秒级）
-  throttle: number = 60; // 按钮滑出距离阈值（超过这个阈值时抬起后自动滑出，否则收起）
-  rebounce: boolean = true; // 滑出时是否有弹性效果
-  fullSlide: boolean = false; // 是否启用最后一个按钮覆盖滑动
-  _shown: boolean = false; // 按钮状态，已滑出（展开）
-  _destory: boolean = false;
-  _confirmIndex: number = -1; // 当前正在确认的按钮
+  timing: Timing = 'ease'; // 滑动时动画的函数
+  elWidth: number = 0; // 视图宽度
+  _direction: Direction = 'none'; // 当前展示的是哪个方向按钮
+  _destory: boolean = false; //是否销毁
+  _confirm: Confirm | null = null; // 当前正在确认的按钮
   _translateX: number = 0; // 元素当前位移值
-  _slideAngle: number = 0; // 手指滑出时与水平角度值（非真实角度，只是xy差，反映是否小于45度）
   _slideStatus: number = 0; // 滑动状态
-  _slideRange: number[] | null = null; // element逐步移动最大范围
   _startPoint: number[] | null = null; // 手指放上后初始点
   _startTX: number = 0; // 手指放上那一刻，translateX值
   _timeStamp: number = 0; // 移动时的时间戳
   _isMoving: boolean = false; // 是否正在滑动
-  _buttons:
-    | null
-    | {
-        element: HTMLElement; //当前按钮元素
-        width: number; // 当前按钮的宽度
-        lastOne: boolean; // 是否是最后一个按钮
-        position?: ButtonPosition; // 按钮位置
-        slideOut?: boolean; // 按钮点击后是否隐藏按钮
-        icon?: boolean; // 是否是图标
-        confirm?: boolean; // 是否有再次确认操作
-        data?: any; // 按钮携带数据
-      }[] = null; // 按钮集合
-  _agents: IAgent[] | null = null;
-  constructor(options: SlideViewOptions) {
+  _agents: IAgent | null;
+  constructor(options: IOption) {
     super();
     const {
+      className,
+      container,
+      content,
+      friction,
+      rebounce,
+      duration,
+      timing,
+      leftActions,
+      rightActions,
+    } = options;
+    const [element, contentEl, leftEl, rightEl] = generateEl(
       container,
       className,
-      content,
-      buttons,
-      duration,
-      throttle,
-      disable = false,
-      rebounce = true,
-      fullSlide = false,
-    } = options;
-    this.element = generate(container, className);
-    this._agents = [
-      agent(this.element, {
-        start: start.bind(this),
-        move: move.bind(this),
-        end: end.bind(this),
-        press: press.bind(this),
-        longPress: longPress.bind(this),
-        doublePress: doublePress.bind(this),
-      }),
-    ];
+    );
+    this.element = element;
+    this.elWidth = element.getBoundingClientRect().width;
+    this.contentEl = contentEl;
+    this.leftEl = leftEl;
+    this.rightEl = rightEl;
     this.setContent(content);
-    this.setButtons(buttons);
-    this._destory = false;
-    this.disable = disable || false;
-    this.duration = (duration || 400) / 1000;
-    this.throttle = throttle || 40;
-    this.rebounce = rebounce;
-    this.fullSlide = fullSlide;
+    this.setFriction(friction);
+    this.setRebounce(rebounce);
+    this.setDuration(duration);
+    this.setTiming(timing);
+    this.setActions(leftActions, 'left');
+    this.setActions(rightActions, 'right');
+    this._agents = agent(element, {
+      start: start.bind(this),
+      move: move.bind(this),
+      end: end.bind(this),
+      press: press.bind(this),
+      longPress: longPress.bind(this),
+      doublePress: doublePress.bind(this),
+    });
   }
-  setDisable(disable: boolean = true) {
-    if (this._destory) {
+  setContent(content: HTMLElement | string = '') {
+    if (this._destory || !this.contentEl) {
       return;
     }
-    this.disable = disable;
-  }
-  setRebounce(rebounce: boolean = true) {
-    if (this._destory) {
+    if (typeof content === 'string' && !content.match(/^[#|.].+/)) {
+      this.contentEl.innerHTML = content;
       return;
     }
-    this.rebounce = rebounce;
-  }
-  setDuration(duration: number = 0) {
-    if (this._destory) {
-      return;
-    }
-    this.duration = duration / 1000;
-  }
-  setThrottle(throttle: number = 0) {
-    if (this._destory) {
-      return;
-    }
-    this.throttle = throttle;
-  }
-  setFullSlide(fullSlide: boolean = true) {
-    if (this._destory) {
-      return;
-    }
-    this.fullSlide = fullSlide;
-  }
-  setButtons(buttons?: SlideViewButtonOptions[]) {
-    if (this._destory) {
-      return;
-    }
-    const btnPos: ButtonPosition | null =
-      this._translateX === 0 ? null : this._translateX > 0 ? 'left' : 'right';
-    // 重新设置按钮时应该先收起（因为刚插入的按钮是没有transform的，当然可以根据收起状态来计算，不想计算了）
-    this.hideButton().then(() => {
-      const leftBtnElement = this.element.previousSibling
-        ?.firstChild as HTMLElement;
-      leftBtnElement.innerHTML = '';
-      if (this._agents && !this._agents[1]) {
-        this._agents[1] = agent(leftBtnElement, {
-          press: buttonPress.bind(this),
-        });
+    try {
+      let tempChild;
+      if (typeof content === 'string') {
+        tempChild = document.querySelector(content);
+      } else {
+        tempChild = content;
       }
-      const rightBtnElement = this.element.nextSibling
-        ?.firstChild as HTMLElement;
-      rightBtnElement.innerHTML = '';
-      if (this._agents && !this._agents[2]) {
-        this._agents[2] = agent(rightBtnElement, {
-          press: buttonPress.bind(this),
-        });
+      if (tempChild) {
+        this.contentEl.innerHTML = '';
+        this.contentEl.appendChild(tempChild);
       }
-      let leftMax = 0;
-      let rightMax = 0;
-      let lastLeftIndex = -1;
-      let lastRightIndex = -1;
-      this._buttons = (buttons || []).map(
-        (
-          {
+    } catch (e) {}
+  }
+  setFriction(friction: number = 0.6) {
+    if (this._destory) {
+      return;
+    }
+    // friction: 不传为默认值0.6，传小于0的都为0，大于1的都为1，传非数字，则属于无效设置
+    if (typeof friction === 'number') {
+      this.friction = Math.min(1, Math.max(0, friction));
+    }
+  }
+  setRebounce(rebounce: number = 12) {
+    if (this._destory) {
+      return;
+    }
+    // rebounce: 不传为默认值12，传小于0的都为0，传非数字，则属于无效设置
+    if (typeof rebounce === 'number') {
+      this.rebounce = Math.max(0, rebounce);
+    }
+  }
+  setDuration(duration: number = 0.4) {
+    if (this._destory) {
+      return;
+    }
+    // duration: 不传为默认值0.4，传小于0的都为0，传非数字，则属于无效设置
+    if (typeof duration === 'number') {
+      this.duration = Math.max(0, duration);
+    }
+  }
+  setTiming(timing: Timing = 'ease') {
+    if (this._destory) {
+      return;
+    }
+    // timing: 不传为默认值ease
+    this.timing = timing;
+  }
+  setDisable(disable: boolean = true, direction: Direction = 'both') {
+    if (this._destory) {
+      return;
+    }
+    // disable: 不传为默认值true，传非布尔，则无效设置
+    if (typeof disable === 'boolean') {
+      // direction传其它，则属于无效设置
+      if (this.leftActions && (direction === 'both' || direction === 'left')) {
+        this.leftActions.disable = disable;
+      }
+      if (
+        this.rightActions &&
+        (direction === 'both' || direction === 'right')
+      ) {
+        this.rightActions.disable = disable;
+      }
+    }
+  }
+  setOvershoot(overshoot: boolean = true, direction: Direction = 'both') {
+    if (this._destory) {
+      return;
+    }
+    // overshoot: 不传为默认值true，传非布尔，则无效设置
+    if (typeof overshoot === 'boolean') {
+      // direction传其它，则属于无效设置
+      if (this.leftActions && (direction === 'both' || direction === 'left')) {
+        this.leftActions.overshoot = overshoot;
+      }
+      if (
+        this.rightActions &&
+        (direction === 'both' || direction === 'right')
+      ) {
+        this.rightActions.overshoot = overshoot;
+      }
+    }
+  }
+  setThrottle(throttle: number = 40, direction: Direction = 'both') {
+    if (this._destory) {
+      return;
+    }
+    // overshoot: 不传为默认值40，传小于0的都为0，传非数字，则无效设置
+    if (typeof throttle === 'number') {
+      const _throttle = Math.max(0, throttle);
+      // direction传其它，则属于无效设置
+      if (this.leftActions && (direction === 'both' || direction === 'left')) {
+        this.leftActions.throttle = _throttle;
+      }
+      if (
+        this.rightActions &&
+        (direction === 'both' || direction === 'right')
+      ) {
+        this.rightActions.throttle = _throttle;
+      }
+    }
+  }
+  setActions(actions: IActionOption = {}, direction: Direction = 'both') {
+    if (this._destory) {
+      return;
+    }
+    // actions: 不传为默认值{}，不传，传其它，只要没有items的，都认为是删除按钮
+    const _setActions = (_direction: 'left' | 'right') => {
+      const parentEl = this[`${_direction}El`];
+      if (!parentEl) {
+        return;
+      }
+      const shown =
+        this._translateX > 0 ? 'left' : this._translateX < 0 ? 'right' : 'none';
+      // 重新设置按钮时应该先收起（因为刚插入的按钮是没有transform的，当然可以根据收起状态来计算，不想计算了）
+      this.hide().then(() => {
+        parentEl.innerHTML = '';
+        this[`${_direction}Actions`] = null;
+        if (actions.items && actions.items.length > 0) {
+          const {
             className,
-            icon,
-            width,
-            height,
-            text,
-            confirmText,
-            color,
-            background,
-            position = 'right',
-            slideOut = true,
-            data,
-          },
-          index,
-        ) => {
-          const btnWrap = addClass(
+            throttle = 40,
+            disable = false,
+            overshoot = false,
+            style = 'rect',
+            items,
+          } = actions;
+          const actionEl = addClass(
             document.createElement('div'),
-            `hjs-slideview__btn__wrap ${className || ''}`,
+            `hjs-slideview__actions hjs-slideview__actions__${style} ${
+              className || ''
+            }`,
           );
-          btnWrap.setAttribute('data-index', String(index));
-          const btn = setStyle(
-            addClass(document.createElement('div'), 'hjs-slideview__btn'),
-            {
-              color,
-              background,
-              width: width || '100%',
-              height: height || '100%',
-              padding: icon ? 0 : '0 16px',
-              margin: icon ? '0 10px' : 0,
-              borderRadius: icon
-                ? !height
-                  ? '50%'
-                  : (typeof height === 'string'
-                      ? parseInt(height, 10)
-                      : height) / 2
-                : 0,
-            },
-          );
-          if (icon) {
-            const { src, className: cls, width: w, height: h } = icon;
-            if (src) {
-              const btnImg = document.createElement('img');
-              btnImg.src = src;
-              if (typeof w === 'string') {
-                btnImg.width = parseInt(w, 10);
-              } else if (typeof w === 'number') {
-                btnImg.width = w;
-              }
-              if (typeof h === 'string') {
-                btnImg.height = parseInt(h, 10);
-              } else if (typeof h === 'number') {
-                btnImg.height = h;
-              }
-              btn.appendChild(addClass(btnImg, cls || ''));
-            } else {
-              btn.appendChild(
-                setStyle(addClass(document.createElement('i'), cls || ''), {
-                  width,
-                  height,
-                }),
+          parentEl.appendChild(actionEl);
+          let totalWidth = 0;
+          const newItems = items.map((item, index) => {
+            const { text, icon } = item;
+            const wrapEl = addClass(
+              document.createElement('div'),
+              'hjs-slideview__action__wrap',
+            );
+            const itemEl = addClass(
+              document.createElement('div'),
+              'hjs-slideview__action',
+            );
+            itemEl.setAttribute('data-index', String(index));
+            if (icon) {
+              itemEl.appendChild(
+                addClass(
+                  document.createElement(getIconType(icon)),
+                  'hjs-slideview__action__icon',
+                ),
               );
             }
-          } else {
-            const btnText = document.createElement('span');
-            btnText.innerText = String(text);
-            btn.appendChild(btnText);
-            if (confirmText) {
-              const btnCText = document.createElement('span');
-              btnCText.innerText = String(confirmText);
-              setStyle(btnCText, { display: 'none' });
-              btn.appendChild(btnCText);
+            if (text) {
+              itemEl.appendChild(
+                addClass(
+                  document.createElement('span'),
+                  'hjs-slideview__action__text',
+                ),
+              );
             }
-          }
-          btnWrap.appendChild(btn);
-          if (position === 'left') {
-            leftBtnElement.appendChild(btnWrap);
-          } else {
-            rightBtnElement.appendChild(btnWrap);
-          }
-          const btnWidth = btnWrap.getBoundingClientRect().width;
-          if (position === 'left') {
-            leftMax += btnWidth;
-            lastLeftIndex = index;
-          } else {
-            rightMax += btnWidth;
-            lastRightIndex = index;
-          }
-          return {
-            element: btnWrap,
-            width: btnWidth,
-            position,
-            slideOut,
-            icon: !!icon,
-            confirm: !!confirmText,
-            lastOne: false,
-            data,
+            wrapEl.appendChild(itemEl);
+            actionEl.appendChild(wrapEl);
+            const actionItem = {
+              wrapElement: wrapEl,
+              element: itemEl,
+              width: 0,
+              margin: 0,
+              ...item,
+            };
+            confirmStyle(style, actionItem);
+            const margin = getMarginSize(itemEl);
+            const width = itemEl.getBoundingClientRect().width + margin;
+            totalWidth += width;
+            return {
+              ...actionItem,
+              width,
+              margin,
+            };
+          });
+          this[`${_direction}Actions`] = {
+            style,
+            throttle,
+            disable,
+            overshoot,
+            totalWidth,
+            items: newItems,
           };
-        },
-      );
-      if (lastLeftIndex !== -1) {
-        this._buttons[lastLeftIndex].lastOne = true;
-      }
-      if (lastRightIndex !== -1) {
-        this._buttons[lastRightIndex].lastOne = true;
-      }
-      this._slideRange = [-rightMax, leftMax];
-      if (btnPos) {
-        this.showButton(btnPos);
-      }
-    });
+          if (shown !== 'none') {
+            this.show(shown);
+          }
+        }
+      });
+    };
+    // direction传其它，则属于无效设置
+    if (direction === 'both' || direction === 'left') {
+      _setActions('left');
+    }
+    if (direction === 'both' || direction === 'right') {
+      _setActions('right');
+    }
   }
-  setContent(content?: HTMLElement | string) {
+  toggle(direction: Direction = 'right') {
     if (this._destory) {
       return;
     }
-    let tempChild;
-    if (typeof content === 'string') {
-      tempChild = document.querySelector(content);
-    } else {
-      tempChild = content;
-    }
-    if (tempChild) {
-      this.element.innerHTML = '';
-      this.element.appendChild(tempChild);
-    }
+    return this._translateX === 0 ? this.show(direction) : this.hide();
   }
-  hideButton() {
+  show(direction: Direction = 'right') {
     return new Promise<void>((resolve) => {
-      if (this._destory || !this._buttons) {
+      const {
+        _destory,
+        _translateX,
+        _direction,
+        contentEl,
+        rebounce,
+        leftActions,
+        rightActions,
+      } = this;
+      if (
+        _destory ||
+        !contentEl ||
+        ((!leftActions || leftActions.disable) &&
+          (!rightActions || rightActions.disable))
+      ) {
         resolve();
         return;
       }
-      if (this._translateX === 0 && this._shown) {
-        resolve();
-        this.trigger('hide', {
-          currentTarget: this.element,
-          timeStamp: Date.now(),
-          sourceEvent: null,
-        });
-        this._shown = false;
-        return;
+      let __direction = direction;
+      if (!leftActions || leftActions.disable) {
+        __direction = 'right';
       }
-      const positive = this._translateX < 0;
-      this._translateX = 0;
-      transform.apply(this, [0, positive, 0]);
-      onOnceTransitionEnd(this.element, () => {
-        resolve(); // 如果当前处于按钮确认状态，隐藏之前需要先取消
-        if (this._confirmIndex !== -1) {
-          cTransform.apply(this, [this._confirmIndex, false]);
-          this._confirmIndex = -1;
-        }
-        if (this._shown) {
-          this.trigger('hide', {
-            currentTarget: this.element,
-            timeStamp: Date.now(),
-            sourceEvent: null,
-          });
-          this._shown = false;
-        }
-      });
-    });
-  }
-  showButton(position?: ButtonPosition) {
-    return new Promise<void>((resolve) => {
-      if (this._destory) {
-        resolve();
-        return;
+      if (!rightActions || !rightActions.disable) {
+        __direction = 'left';
       }
-      const [slideMin, slideMax] = this._slideRange || [0, 0];
-      const pos = slideMin === 0 ? 'left' : slideMax === 0 ? 'right' : position;
-      const max = pos === 'left' ? slideMax : slideMin;
-      if (this._translateX === max && !this._shown) {
+      const actions = __direction === 'left' ? leftActions : rightActions;
+      const factor = __direction === 'left' ? 1 : -1;
+      const maxtranslateX = !actions ? 0 : actions.totalWidth * factor;
+      if (_translateX === maxtranslateX) {
         resolve();
-        this.trigger('show', {
-          currentTarget: this.element,
-          timeStamp: Date.now(),
-          sourceEvent: null,
-        });
-        this._shown = true;
         return;
       }
       const show = (rebSize: number = 0) => {
-        const factor = pos === 'left' ? 1 : -1;
-        const moveX = max + rebSize * factor;
-        const positive = moveX > this._translateX;
+        const moveX = maxtranslateX + rebSize;
         this._translateX = moveX;
-        transform.apply(this, [moveX, positive, 0]);
+        transform.apply(this, [moveX, 0]);
         if (!rebSize) {
-          onOnceTransitionEnd(this.element, () => {
+          onOnceTransitionEnd(contentEl, () => {
             resolve();
-            if (!this._shown) {
+            if (_direction !== __direction) {
               this.trigger('show', {
-                currentTarget: this.element,
+                direction: _direction,
+                currentTarget: contentEl,
                 timeStamp: Date.now(),
                 sourceEvent: null,
               });
-              this._shown = true;
+              this._direction = __direction;
             }
           });
         }
       };
       // 设置回弹效果并且已滑动宽度小于最大宽度时才有弹性效果
-      if (this.rebounce && Math.abs(this._translateX) < Math.abs(max)) {
-        show(SlideView.REBOUNCE_SIZE);
-        onOnceTransitionEnd(this.element, () => show());
+      if (
+        rebounce > 0 &&
+        ((maxtranslateX > 0 && _translateX < maxtranslateX) ||
+          (maxtranslateX < 0 && _translateX > maxtranslateX))
+      ) {
+        onOnceTransitionEnd(contentEl, () => show());
+        show(rebounce * factor);
       } else {
         show();
       }
     });
   }
-  toggleButton(position?: ButtonPosition) {
-    if (this._destory) {
-      return;
-    }
-    return this._translateX === 0
-      ? this.showButton(position)
-      : this.hideButton();
+  hide() {
+    return new Promise<void>((resolve) => {
+      const {
+        _destory,
+        _translateX,
+        _confirm,
+        _direction,
+        contentEl,
+        leftActions,
+        rightActions,
+      } = this;
+      if (
+        _destory ||
+        _translateX === 0 ||
+        !contentEl ||
+        ((!leftActions || leftActions.disable) &&
+          (!rightActions || rightActions.disable))
+      ) {
+        resolve();
+        return;
+      }
+      this._translateX = 0;
+      transform.apply(this, [0, 0]);
+      // 在收起动画期间，连续执行隐藏方法，会主动cancel上一次transition，保证只执行最后一次
+      onOnceTransitionEnd(contentEl, () => {
+        resolve();
+        // 如果当前处于按钮确认状态，隐藏之前需要先取消
+        if (_confirm) {
+          // 此时已经隐藏，this._translateX为0，无需过渡，duration设置为0
+          cTransform.apply(this, [_confirm, false, 0, 0]);
+          const { index, direction } = _confirm;
+          const actions =
+            direction === 'left'
+              ? leftActions
+              : direction === 'right'
+              ? rightActions
+              : null;
+          if (actions) {
+            confirmStyle(actions.style, actions.items[index]);
+          }
+          this._confirm = null;
+        }
+        if (_direction !== 'none') {
+          this.trigger('hide', {
+            direction: 'none',
+            currentTarget: contentEl,
+            timeStamp: Date.now(),
+            sourceEvent: null,
+          });
+          this._direction = 'none';
+        }
+      });
+    });
   }
   destory() {
     // 解除所有事件
     super.off();
     // 销毁底层事件
-    this._agents?.forEach((a) => a && a.destory());
-    this._agents = null;
-    this._destory = true;
-    this._buttons = null;
-    this._slideRange = null;
+    if (this._agents) {
+      this._agents.destory();
+      this._agents = null;
+    }
+    if (this.element) {
+      // 删除元素，用户可以在调用该方法之前加一个删除动画
+      const viewEl = this.element.parentNode as HTMLElement;
+      if (viewEl.parentNode) {
+        viewEl.parentNode.removeChild(viewEl);
+      }
+      this.element = null;
+    }
+    this.contentEl = null;
+    this.leftEl = null;
+    this.rightEl = null;
+    this._confirm = null;
+    this.leftActions = null;
+    this.rightActions = null;
     this._startPoint = null;
-    // 删除元素，用户可以在调用该方法之前加一个删除动画
-    const viewEl = this.element.parentNode as HTMLElement;
-    viewEl.parentNode?.removeChild(viewEl);
+    this._destory = true;
   }
 }
 
-export type ButtonPosition = 'left' | 'right';
+type Direction = 'left' | 'right' | 'both' | 'none';
 
-export type SlideViewButtonOptions = {
-  className?: string; // 类名控制样式
-  icon?: {
-    src?: string;
-    className?: string; // 类名控制样式（一般使用字体icon时，可以设置这个）
-    width?: string | number; // 图标宽度
-    height?: string | number; // 图标高度
-  };
-  width?: string | number; // 背景宽度
-  height?: string | number; // 背景高度
-  text?: string | number; // 按钮文本
-  confirmText?: string | number; // 点击时确认文字
-  color?: string; // 按钮文字图标颜色
-  background?: string; //背景颜色
-  position?: ButtonPosition; // 按钮位置
-  slideOut?: boolean; // 按钮点击后是否隐藏按钮
+type Timing =
+  | 'linear'
+  | 'ease'
+  | 'ease-in'
+  | 'ease-out'
+  | 'ease-in-out'
+  | `cubic-bezier(${number},${number},${number},${number})`;
+
+type ActionStyle = 'round' | 'rect';
+
+type Confirm = {
+  direction: Direction;
+  index: number;
+};
+
+type MergeActionItem = {
+  wrapElement: HTMLElement; //当前按钮包装元素
+  element: HTMLElement; //当前按钮元素
+  width: number; // 当前按钮的宽度
+  margin: number; // 当前按钮的左右margin和
+} & IActionItem;
+
+type MergeAction = {
+  style: ActionStyle; // 按钮风格
+  disable: boolean; // 禁用按钮
+  overshoot: boolean; // 滑动超出(仅限最后一个按钮)
+  throttle: number; // 滑动距离阈值（超过这个阈值时抬起后自动滑出，否则收起）
+  totalWidth: number; // 所有按钮展开情况下总宽度
+  items: MergeActionItem[]; // 按钮配置
+};
+
+export type IActionItem = {
+  className?: string; // 按钮自定义样式
+  text?: string; // 按钮文字
+  icon?: string; // 按钮图标（会根据传入的字符串形式判断是img还是svg元素或是字体icon）
+  color?: string; // 按钮文字图标颜色（img图标除外）
+  background?: string; //按钮背景颜色
+  confirm?: {
+    // 按钮在确认的时候替代的内容样式，不传则没有确认环节，只传{}则有确认环节，但内容样式不改变
+    className?: string; // 按钮自定义样式
+    text?: string; // 按钮文字
+    icon?: string; // 按钮图标
+    color?: string; // 按钮文字图标颜色
+    background?: string; //按钮背景颜色
+  }; // 按钮确认时的信息
+  collapse?: boolean; // 按钮点击后是否收起
   data?: any; //按钮携带数据
 };
 
-export type SlideViewOptions = {
-  container: HTMLElement | string; // 装载滑动删除的DOM容器
-  content?: HTMLElement | string; // 滑动元素的子节点
-  buttons?: SlideViewButtonOptions[]; // 按钮配置
-  className?: string; // 类名控制样式
-  disable?: boolean; // 禁用
-  duration?: number; // 动画时间（毫秒级）
-  throttle?: number; //按钮滑出距离阈值（超过这个阈值时抬起后自动滑出，否则收起）
-  rebounce?: boolean; // 滑出时是否有弹性效果
-  fullSlide?: boolean; // 最后一个按钮覆盖滑动
+export type IActionOption = {
+  className?: string; // 按钮自定义样式
+  style?: ActionStyle; // 按钮风格
+  disable?: boolean; // 禁用按钮
+  overshoot?: boolean; // 滑动超出(仅限最后一个按钮)
+  throttle?: number; // 滑动距离阈值（超过这个阈值时抬起后自动滑出，否则收起）
+  items?: IActionItem[]; // 按钮配置
 };
 
-export type SlideViewEventType =
+export type IOption = {
+  className?: string; // 滑动组件类名控制样式
+  container: HTMLElement | string; // 装载滑动组件的DOM容器
+  content?: HTMLElement | string; // 滑动组件的子节点
+  friction?: number; // 摩擦因子(0-1的值)
+  rebounce?: number; // 弹性尺寸
+  duration?: number; // 滑动时动画的时间（秒级）
+  timing?: Timing; // 滑动时动画的函数
+  leftActions?: IActionOption;
+  rightActions?: IActionOption;
+};
+
+export type IEventType =
   | 'show'
   | 'hide'
   | 'press'
@@ -953,9 +1256,10 @@ export type SlideViewEventType =
   | 'buttonPress'
   | 'buttonConfirm';
 
-export type SlideViewEvent = {
-  index?: number;
-  data?: any;
+export type IEvent = {
+  direction?: Direction; // 滑出的是哪边的按钮
+  index?: number; // 点击按钮在按钮集合里的索引
+  data?: any; // 按钮携带的数据
 } & IBaseEvent<HTMLElement, AgentEvent | null>;
 
 export default SlideView;
