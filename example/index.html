@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2021-10-15 15:24:21
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-03-09 17:46:54
+ * @LastEditTime: 2023-03-22 10:30:04
  * @Description: ******
 -->
 <!DOCTYPE html>
@@ -18,144 +18,276 @@
   <body>
     <h2>滑动删除示例</h2>
     <div class="slide-view-example">
-      <div class="slide-view-item"></div>
-      <div class="slide-view-item" style="height: 58px"></div>
+      <div class="slide-view-item" style="height: 64px"></div>
     </div>
     <div id="info" class="item-div"></div>
     <div class="operate">
       <div class="item-div">
-        创建item: <button type="button" id="create">create</button>
-      </div>
-      <div
-        class="item-div"
-        style="flex-direction: column; padding: 5px; border: 1px solid #ddd">
-        <div class="item-div">
-          添加按钮: <button type="button" id="button">setButtons</button>
+        <div>
+          create:
+          <button type="button" id="create">create</button>
         </div>
-        <form
-          id="button-form"
-          class="item-div"
-          style="justify-content: space-between"
-          autocomplete="off">
-          <div style="width: 48%">
+        <div style="margin-left: 20px">
+          destory:
+          <button type="button" id="destory">destory</button>
+        </div>
+      </div>
+      <div style="border: 1px solid #ddd; margin: 0 -5px; padding: 0 5px">
+        <div class="item-div">
+          <div>
+            actions:
+            <button type="button" id="actions">setActions</button>
+          </div>
+          <div style="margin-left: 20px">
+            hide:
+            <button type="button" id="hide">hide</button>
+          </div>
+        </div>
+        <form id="actions-form" class="item-div" autocomplete="off">
+          <div class="col">
             <div class="item-div">
-              <label><input name="left" type="checkbox" />左边</label>
+              <label><input name="left" type="checkbox" />left</label>
               <button type="button" id="show-left">show</button>
+              <label> <input name="leftDelete" type="checkbox" />delete </label>
+            </div>
+            <div>
+              actionNum:<br />
+              <div class="item-div">
+                <label>
+                  <input type="radio" name="leftNum" value="1" />1
+                </label>
+                <label>
+                  <input type="radio" name="leftNum" value="2" />2
+                </label>
+                <label>
+                  <input type="radio" name="leftNum" value="3" checked />3
+                </label>
+                <label>
+                  <input name="leftCollapse" type="checkbox" checked />collapse
+                </label>
+              </div>
+            </div>
+            <div>
+              text/icon:<br />
+              <div class="item-div">
+                <label>
+                  <input type="radio" name="leftText" value="1" />icon
+                </label>
+                <label>
+                  <input type="radio" name="leftText" value="2" />text
+                </label>
+                <label>
+                  <input type="radio" name="leftText" value="3" checked />both
+                </label>
+              </div>
+            </div>
+            <div>
+              confirm:<br />
+              <div class="item-div">
+                <label>
+                  <input name="leftConfirmText" type="checkbox" />text/icon
+                </label>
+                <label>
+                  <input name="leftConfirmColor" type="checkbox" />color
+                </label>
+                <label>
+                  <input name="leftConfirmBg" type="checkbox" />bg
+                </label>
+              </div>
             </div>
             <div class="item-div">
-              <span>类型:</span>
-              <label
-                ><input type="radio" name="leftType" value="1" />round</label
-              >
-              <label
-                ><input
-                  type="radio"
-                  name="leftType"
-                  value="0"
-                  checked />rect</label
-              >
+              style:
+              <label>
+                <input type="radio" name="leftStyle" value="rect" checked />rect
+              </label>
+              <label>
+                <input type="radio" name="leftStyle" value="round" />round
+              </label>
             </div>
             <div class="item-div">
-              <span>数量:</span>
-              <label
-                ><input type="radio" name="leftNum" value="0" checked />1</label
-              >
-              <label><input type="radio" name="leftNum" value="1" />2</label>
-              <label><input type="radio" name="leftNum" value="2" />3</label>
+              disable:
+              <label id="leftDisable">
+                <input
+                  id="input-leftDisable"
+                  name="leftDisable"
+                  type="checkbox" />disable
+              </label>
             </div>
             <div class="item-div">
-              <span>点击后收起:</span
-              ><label
-                ><input name="leftSlideOut" type="checkbox" />slideOut</label
-              >
+              threshold:
+              <input
+                id="input-leftThreshold"
+                name="leftThreshold"
+                type="number"
+                value="40" />
+              <button type="button" id="leftThreshold">ok</button>
             </div>
             <div class="item-div">
-              <span>点击后确认:</span
-              ><label
-                ><input name="leftConfirm" type="checkbox" />confirm</label
-              >
+              overshoot:
+              <label id="leftOvershoot">
+                <input
+                  id="input-leftOvershoot"
+                  name="leftOvershoot"
+                  type="checkbox" />overshoot
+              </label>
+            </div>
+            <div class="item-div">
+              OSR:
+              <input
+                name="leftOvershootStartRatio"
+                type="number"
+                value="0.75" />
+            </div>
+            <div class="item-div">
+              OER:
+              <input name="leftOvershootEndRatio" type="number" value="0.95" />
+            </div>
+            <div class="item-div">
+              CWR:
+              <input name="leftClampWidthRatio" type="number" value="0.85" />
             </div>
           </div>
-          <div style="width: 48%">
+          <div class="col">
             <div class="item-div">
-              <label><input type="checkbox" name="right" checked />右边</label>
+              <label><input name="right" type="checkbox" checked />right</label>
               <button type="button" id="show-right">show</button>
+              <label>
+                <input name="rightDelete" type="checkbox" />delete
+              </label>
+            </div>
+            <div>
+              actionNum:<br />
+              <div class="item-div">
+                <label>
+                  <input type="radio" name="rightNum" value="1" />1
+                </label>
+                <label>
+                  <input type="radio" name="rightNum" value="2" />2
+                </label>
+                <label>
+                  <input type="radio" name="rightNum" value="3" checked />3
+                </label>
+                <label>
+                  <input name="rightCollapse" type="checkbox" checked />collapse
+                </label>
+              </div>
+            </div>
+            <div>
+              text/icon:<br />
+              <div class="item-div">
+                <label>
+                  <input type="radio" name="rightText" value="1" />icon
+                </label>
+                <label>
+                  <input type="radio" name="rightText" value="2" />text
+                </label>
+                <label>
+                  <input type="radio" name="rightText" value="3" checked />both
+                </label>
+              </div>
+            </div>
+            <div>
+              confirm:<br />
+              <div class="item-div">
+                <label>
+                  <input name="rightConfirmText" type="checkbox" />text/icon
+                </label>
+                <label>
+                  <input name="rightConfirmColor" type="checkbox" />color
+                </label>
+                <label>
+                  <input name="rightConfirmBg" type="checkbox" />bg
+                </label>
+              </div>
             </div>
             <div class="item-div">
-              <span>类型:</span>
-              <label
-                ><input type="radio" name="rightType" value="1" />round</label
-              >
-              <label
-                ><input
+              style:
+              <label>
+                <input
                   type="radio"
-                  name="rightType"
-                  value="0"
-                  checked />rect</label
-              >
+                  name="rightStyle"
+                  value="rect"
+                  checked />rect
+              </label>
+              <label>
+                <input type="radio" name="rightStyle" value="round" />round
+              </label>
             </div>
             <div class="item-div">
-              <span>数量:</span>
-              <label
-                ><input
-                  type="radio"
-                  name="rightNum"
-                  value="0"
-                  checked />1</label
-              >
-              <label><input type="radio" name="rightNum" value="1" />2</label>
-              <label><input type="radio" name="rightNum" value="2" />3</label>
+              disable:
+              <label id="rightDisable">
+                <input
+                  id="input-rightDisable"
+                  name="rightDisable"
+                  type="checkbox" />disable
+              </label>
             </div>
             <div class="item-div">
-              <span>点击后收起:</span
-              ><label
-                ><input name="rightSlideOut" type="checkbox" />slideOut</label
-              >
+              threshold:
+              <input
+                id="input-rightThreshold"
+                name="rightThreshold"
+                type="number"
+                value="40" />
+              <button type="button" id="rightThreshold">ok</button>
             </div>
             <div class="item-div">
-              <span>点击后确认:</span
-              ><label
-                ><input name="rightConfirm" type="checkbox" />confirm</label
-              >
+              overshoot:
+              <label id="rightOvershoot">
+                <input
+                  id="input-rightOvershoot"
+                  name="rightOvershoot"
+                  type="checkbox" />overshoot
+              </label>
+            </div>
+            <div class="item-div">
+              OSR:
+              <input
+                name="rightOvershootStartRatio"
+                type="number"
+                value="0.75" />
+            </div>
+            <div class="item-div">
+              OER:
+              <input name="rightOvershootEndRatio" type="number" value="0.95" />
+            </div>
+            <div class="item-div">
+              CWR:
+              <input name="rightClampWidthRatio" type="number" value="0.85" />
             </div>
           </div>
         </form>
       </div>
       <div class="item-div">
-        隐藏: <button type="button" id="hide">hide</button>
+        content:
+        <input id="input-content" type="text" value="滑动菜单示例" />
+        <button type="button" id="content">ok</button>
       </div>
       <div class="item-div">
-        滑满: <label id="fullSlide"><input type="checkbox" />fullSlide</label>
+        rebounce:
+        <input id="input-rebounce" type="number" value="12" />
+        <button type="button" id="rebounce">ok</button>
       </div>
       <div class="item-div">
-        禁用: <label id="disable"><input type="checkbox" />disable</label>
+        friction:
+        <input id="input-friction" type="number" value="0.6" />
+        <button type="button" id="friction">ok</button>
       </div>
       <div class="item-div">
-        回弹:
-        <label id="rebounce"><input type="checkbox" checked />rebounce</label>
+        duration:
+        <input id="input-duration" type="number" value="0.4" />
+        <button type="button" id="duration">ok</button>
       </div>
       <div class="item-div">
-        throttle: <input type="number" value="60" /><button
-          type="button"
-          id="throttle">
-          ok
-        </button>
-      </div>
-      <div class="item-div">
-        duration: <input type="number" value="400" /><button
-          type="button"
-          id="duration">
-          ok
-        </button>
-      </div>
-      <div class="item-div">
-        item内容: <input id="input" type="input" value="滑动菜单示例" /><button
-          id="content">
-          ok
-        </button>
-      </div>
-      <div class="item-div">
-        销毁item: <button type="button" id="destory">destory</button>
+        timing:
+        <select id="input-timing">
+          <option value="linear">linear</option>
+          <option value="ease" selected>ease</option>
+          <option value="ease-in">ease-in</option>
+          <option value="ease-out">ease-out</option>
+          <option value="ease-in-out">ease-in-out</option>
+        </select>
+        <button type="button" id="timing">ok</button>
       </div>
     </div>
   </body>

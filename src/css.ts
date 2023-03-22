@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-02-14 16:23:54
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-03-17 15:15:16
+ * @LastEditTime: 2023-03-21 16:50:28
  * @Description: ******
  */
 export default `
@@ -67,6 +67,7 @@ export default `
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
+  width: auto;
   max-width: 100%;
   height: 100%;
   padding: 0 20px;

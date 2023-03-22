@@ -1,409 +1,378 @@
-/* eslint-disable no-alert */
 /*
  * @Author: Huangjs
  * @Date: 2021-03-17 16:23:00
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-03-15 16:58:56
+ * @LastEditTime: 2023-03-22 10:32:41
  * @Description: ******
  */
 import SlideView, {
-  type SlideViewEvent,
-  type SlideViewButtonOption,
+  type Timing,
+  type ActionStyle,
+  type IEvent,
+  type IActionOption,
 } from '../src/index';
 import './index.less';
 
 let ID = 0;
 let item: SlideView | null = null;
-const getButtons = () => {
-  const buttons: SlideViewButtonOptions[] = [];
-  const form = document.querySelector('#button-form');
-  if (form) {
-    const formData = new FormData(form as HTMLFormElement);
-    if (formData.get('left')) {
-      const type = +(formData.get('leftType') || 0);
-      const num = +(formData.get('leftNum') || 0);
-      const slideout = formData.get('leftSlideOut');
-      const confirm = formData.get('leftConfirm');
-      for (let i = 0; i <= num; i++) {
-        buttons.push(
-          type === 1
+
+const form = document.querySelector('#actions-form') as HTMLFormElement;
+const info = document.querySelector('#info') as HTMLElement;
+const create = document.querySelector('#create') as HTMLElement;
+const destory = document.querySelector('#destory') as HTMLElement;
+const actions = document.querySelector('#actions') as HTMLElement;
+const showLeft = document.querySelector('#show-left') as HTMLElement;
+const showRight = document.querySelector('#show-left') as HTMLElement;
+const hide = document.querySelector('#hide') as HTMLElement;
+const content = document.querySelector('#content') as HTMLElement;
+const inputContent = document.querySelector(
+  '#input-content',
+) as HTMLInputElement;
+const rebounce = document.querySelector('#rebounce') as HTMLElement;
+const inputRebounce = document.querySelector(
+  '#input-rebounce',
+) as HTMLInputElement;
+const friction = document.querySelector('#friction') as HTMLElement;
+const inputFriction = document.querySelector(
+  '#input-friction',
+) as HTMLInputElement;
+const duration = document.querySelector('#duration') as HTMLElement;
+const inputDuration = document.querySelector(
+  '#input-duration',
+) as HTMLInputElement;
+const timing = document.querySelector('#timing') as HTMLElement;
+const inputTiming = document.querySelector(
+  '#input-timing',
+) as HTMLSelectElement;
+const leftDisable = document.querySelector('#leftDisable') as HTMLElement;
+const inputLeftDisable = document.querySelector(
+  '#input-leftDisable',
+) as HTMLInputElement;
+const leftThreshold = document.querySelector('#leftThreshold') as HTMLElement;
+const inputLeftThreshold = document.querySelector(
+  '#input-leftThreshold',
+) as HTMLInputElement;
+const leftOvershoot = document.querySelector('#leftOvershoot') as HTMLElement;
+const inputLeftOvershoot = document.querySelector(
+  '#input-leftOvershoot',
+) as HTMLInputElement;
+const rightDisable = document.querySelector('#rightDisable') as HTMLElement;
+const inputRightDisable = document.querySelector(
+  '#input-rightDisable',
+) as HTMLInputElement;
+const rightThreshold = document.querySelector('#rightThreshold') as HTMLElement;
+const inputRightThreshold = document.querySelector(
+  '#input-rightThreshold',
+) as HTMLInputElement;
+const rightOvershoot = document.querySelector('#rightOvershoot') as HTMLElement;
+const inputRightOvershoot = document.querySelector(
+  '#input-rightOvershoot',
+) as HTMLInputElement;
+const bgMap = ['#3478F3', '#F19A39', '#EA4D3E'];
+const bgConfirmMap = ['#3478F3', '#F19A39', '#EA4D3E'];
+const textMap = ['标记已读', '不显示', '删除'];
+const textConfirmMap = ['确定标记', '确定不显示', '确定删除'];
+const iconMap = [
+  require('./icon/set.png'),
+  require('./icon/edit.png'),
+  require('./icon/delete.png'),
+];
+const iconConfirmMap = [
+  require('./icon/set-confirm.png'),
+  require('./icon/edit-confirm.png'),
+  require('./icon/delete-confirm.png'),
+];
+const getActions = (): {
+  left?: IActionOption;
+  right?: IActionOption;
+} => {
+  const formData = new FormData(form);
+  let leftActions: IActionOption | undefined;
+  if (formData.get('left')) {
+    const cdelete = !!formData.get('leftDelete');
+    const collapse = !!formData.get('leftCollapse');
+    const number = +(formData.get('leftNum') || 1);
+    const text = +(formData.get('leftText') || 3);
+    const confirmText = !!formData.get('leftConfirmText');
+    const confirmColor = !!formData.get('leftConfirmColor');
+    const confirmBg = !!formData.get('leftConfirmBg');
+    const style = (formData.get('leftStyle') || 'rect') as ActionStyle;
+    const disable = !!formData.get('leftDisable');
+    const threshold = +(formData.get('leftThreshold') || 0);
+    const overshoot = !!formData.get('leftOvershoot');
+    const overshootStartRatio = +(formData.get('leftOvershootStartRatio') || 0);
+    const overshootEndRatio = +(formData.get('leftOvershootEndRatio') || 0);
+    const clampWidthRatio = +(formData.get('leftClampWidthRatio') || 0);
+    const items = [];
+    for (let i = 1; i <= number; i++) {
+      const id = ++ID;
+      items.push({
+        className: `action-${id}-${i}`,
+        icon: text === 1 || text === 3 ? iconMap[i] : undefined,
+        text: text === 2 || text === 3 ? textMap[i] : undefined,
+        color: '#fff',
+        background: bgMap[i],
+        confirm:
+          confirmText || confirmColor || confirmBg
             ? {
-                position: 'left',
-                className: `slide-item-${i + 1}`,
-                icon: {
-                  src:
-                    i === 2
-                      ? require('./icon/delete.png')
-                      : i === 1
-                      ? require('./icon/edit.png')
-                      : require('./icon/set.png'),
-                  className: `f f-${
-                    i === 2 ? 'del' : i === 1 ? 'edit' : 'set'
-                  }`,
-                  width: 24,
-                  height: 24,
-                },
-                width: 48,
-                height: 48,
-                background: '#fff',
-                slideOut: !!slideout,
-                confirm: !confirm
-                  ? undefined
-                  : {
-                      className: `f f-${
-                        i === 2 ? 'delO' : i === 1 ? 'editO' : 'setO'
-                      }`,
-                      src:
-                        i === 2
-                          ? require('./icon/delete-confirm.png')
-                          : i === 1
-                          ? require('./icon/edit-confirm.png')
-                          : require('./icon/set-confirm.png'),
-                    },
-                data: { id: ++ID },
+                className: `action-confirm-${id}-${i}`,
+                icon:
+                  confirmText && (text === 1 || text === 3)
+                    ? iconConfirmMap[i]
+                    : undefined,
+                text:
+                  confirmText && (text === 2 || text === 3)
+                    ? textConfirmMap[i]
+                    : undefined,
+                color: confirmColor ? '#2C2C2C' : undefined,
+                background: confirmBg ? bgConfirmMap[i] : undefined,
               }
-            : {
-                position: 'left',
-                className: `slide-item-${i}`,
-                color: '#fff',
-                text: i === 2 ? '删除' : i === 1 ? '不显示' : '标记为已读',
-                background:
-                  i === 2 ? '#E75E58' : i === 1 ? '#EEA151' : '#3D83E5',
-                slideOut: !!slideout,
-                confirm: !confirm
-                  ? undefined
-                  : {
-                      text:
-                        i === 2
-                          ? '确认确认确认确认确认确认删除'
-                          : i === 1
-                          ? '确认确认确认确认确认确认确认确认确认确认确认删除确认删除'
-                          : '确认确认确认确认确认确认确认确认确认确认确认删除确认删除',
-                    },
-                data: { id: ++ID },
-              },
-        );
-      }
+            : undefined,
+        collapse: collapse,
+        data: { id, del: i === number && cdelete },
+      });
     }
-    if (formData.get('right')) {
-      const type = +(formData.get('rightType') || 0);
-      const num = +(formData.get('rightNum') || 0);
-      const slideout = formData.get('rightSlideOut');
-      const confirm = formData.get('rightConfirm');
-      for (let i = 0; i <= num; i++) {
-        buttons.push(
-          type === 1
-            ? {
-                className: `slide-item-${i + 1}`,
-                icon: {
-                  src:
-                    i === 2
-                      ? require('./icon/delete.png')
-                      : i === 1
-                      ? require('./icon/edit.png')
-                      : require('./icon/set.png'),
-                  className: `f f-${
-                    i === 2 ? 'del' : i === 1 ? 'edit' : 'set'
-                  }`,
-                  width: 24,
-                  height: 24,
-                },
-                width: 48,
-                height: 48,
-                background: '#fff',
-                slideOut: !!slideout,
-                confirm: !confirm
-                  ? undefined
-                  : {
-                      className: `f f-${
-                        i === 2 ? 'delO' : i === 1 ? 'editO' : 'setO'
-                      }`,
-                      src:
-                        i === 2
-                          ? require('./icon/delete-confirm.png')
-                          : i === 1
-                          ? require('./icon/edit-confirm.png')
-                          : require('./icon/set-confirm.png'),
-                    },
-                data: { id: ++ID },
-              }
-            : {
-                className: `slide-item-${i}`,
-                color: '#fff',
-                text: i === 2 ? '删除' : i === 1 ? '不显示' : '标记为已读',
-                background:
-                  i === 2 ? '#E75E58' : i === 1 ? '#EEA151' : '#3D83E5',
-                slideOut: !!slideout,
-                confirm: !confirm
-                  ? undefined
-                  : {
-                      text:
-                        i === 2
-                          ? '确认删除？'
-                          : i === 1
-                          ? '确认不显示？'
-                          : '确认标为已读？',
-                    },
-                data: { id: ++ID, del: i === 2 },
-              },
-        );
-      }
-    }
+    leftActions = {
+      className: 'leftAction',
+      style: style,
+      disable: disable,
+      threshold: threshold,
+      overshoot: overshoot,
+      overshootStartRatio: overshootStartRatio,
+      overshootEndRatio: overshootEndRatio,
+      clampWidthRatio: clampWidthRatio,
+      items,
+    };
   }
-  return buttons;
+  let rightActions: IActionOption | undefined;
+  if (formData.get('right')) {
+    const cdelete = !!formData.get('rightDelete');
+    const collapse = !!formData.get('rightCollapse');
+    const number = +(formData.get('rightNum') || 1);
+    const text = +(formData.get('rightText') || 3);
+    const confirmText = !!formData.get('rightConfirmText');
+    const confirmColor = !!formData.get('rightConfirmColor');
+    const confirmBg = !!formData.get('rightConfirmBg');
+    const style = (formData.get('rightStyle') || 'rect') as ActionStyle;
+    const disable = !!formData.get('rightDisable');
+    const threshold = +(formData.get('rightThreshold') || 0);
+    const overshoot = !!formData.get('rightOvershoot');
+    const overshootStartRatio = +(
+      formData.get('rightOvershootStartRatio') || 0
+    );
+    const overshootEndRatio = +(formData.get('rightOvershootEndRatio') || 0);
+    const clampWidthRatio = +(formData.get('rightClampWidthRatio') || 0);
+    const items = [];
+    for (let i = 1; i <= number; i++) {
+      const id = ++ID;
+      items.push({
+        className: `action-${id}-${i}`,
+        icon: text === 1 || text === 3 ? iconMap[i] : undefined,
+        text: text === 2 || text === 3 ? textMap[i] : undefined,
+        color: '#fff',
+        background: bgMap[i],
+        confirm:
+          confirmText || confirmColor || confirmBg
+            ? {
+                className: `action-confirm-${id}-${i}`,
+                icon:
+                  confirmText && (text === 1 || text === 3)
+                    ? iconConfirmMap[i]
+                    : undefined,
+                text:
+                  confirmText && (text === 2 || text === 3)
+                    ? textConfirmMap[i]
+                    : undefined,
+                color: confirmColor ? '#2C2C2C' : undefined,
+                background: confirmBg ? bgConfirmMap[i] : undefined,
+              }
+            : undefined,
+        collapse: collapse,
+        data: { id, del: i === number && cdelete },
+      });
+    }
+    rightActions = {
+      className: 'rightAction',
+      style: style,
+      disable: disable,
+      threshold: threshold,
+      overshoot: overshoot,
+      overshootStartRatio: overshootStartRatio,
+      overshootEndRatio: overshootEndRatio,
+      clampWidthRatio: clampWidthRatio,
+      items,
+    };
+  }
+  return { left: leftActions, right: rightActions };
 };
-const getContent = () => {
-  const input = document.querySelector('#input') as HTMLInputElement;
+const getContent = (): HTMLElement => {
   const cell = document.createElement('div');
   cell.classList.add('slide-view-cell');
   const span = document.createElement('span');
-  span.innerText = input.value;
+  span.innerText = inputContent.value;
   cell.appendChild(span);
   return cell;
 };
-const create = document.querySelector('#create');
-if (create) {
-  create.addEventListener('click', () => {
-    if (item) {
-      item.destory();
-      item = null;
-    }
-    const container = document.querySelectorAll('.slide-view-item')[1];
-    const cell = document.createElement('div');
-    cell.classList.add('slide-view-cell');
-    const span = document.createElement('span');
-    span.innerText = '滑动菜单示例';
-    cell.appendChild(span);
-    item = new SlideView({
-      container: container as HTMLElement,
-      className: 'slide-item-0',
-      content: getContent(),
-      buttons: getButtons(),
-      disable: !!(disable?.firstChild as HTMLInputElement).checked,
-      rebounce: !!(rebounce?.firstChild as HTMLInputElement).checked,
-      fullSlide: !!(fullSlide?.firstChild as HTMLInputElement).checked,
-      duration: +(duration?.previousSibling as HTMLInputElement).value,
-      throttle: +(throttle?.previousSibling as HTMLInputElement).value,
-    });
-    const info = document.querySelector('#info') as HTMLElement;
-    item.on('show', (e) => {
-      info.innerHTML = `item-show:${e.shown}`;
-      console.log(info.innerHTML);
-    });
-    item.on('hide', () => {
-      info.innerHTML = 'item-hide';
-      console.log(info.innerHTML);
-    });
-    item.on('buttonPress', (e: SlideViewEvent) => {
-      info.innerHTML = 'item-buttonPress';
-      if (item && e.data?.del) {
-        const viewEl = item.element.parentNode as HTMLElement;
-        viewEl.style.opacity = '1';
-        window.requestAnimationFrame(() => {
-          viewEl.style.opacity = '0';
-          viewEl.style.transition = 'opacity 0.8s';
-          viewEl.ontransitionend = (ee) => {
-            if (ee.target === viewEl && ee.propertyName === 'opacity') {
-              viewEl.ontransitionend = null;
-              item && item.destory();
-            }
-          };
-        });
-      }
-    });
-    item.on('buttonConfirm', () => {
-      info.innerHTML = 'item-buttonConfirm';
-      console.log(info.innerHTML);
-    });
-    item.on('press', () => {
-      info.innerHTML = 'item-press';
-      console.log(info.innerHTML);
-    });
-    item.on('longPress', () => {
-      info.innerHTML = 'item-longPress';
-      console.log(info.innerHTML);
-    });
-    item.on('doublePress', () => {
-      info.innerHTML = 'item-doublePress';
-      console.log(info.innerHTML);
-    });
-  });
-}
-const button = document.querySelector('#button');
-if (button) {
-  button.addEventListener('click', () => {
-    if (!item) {
-      window.alert('请先创建item...');
-      return;
-    }
-    const buttons = getButtons();
-    item.setButtons(buttons);
-  });
-}
-const showRight = document.querySelector('#show-right');
-if (showRight) {
-  showRight.addEventListener('click', () => {
-    if (!item) {
-      return;
-    }
-    item.showButton('right');
-  });
-}
-const showLeft = document.querySelector('#show-left');
-if (showLeft) {
-  showLeft.addEventListener('click', () => {
-    if (!item) {
-      return;
-    }
-    item.showButton('left');
-  });
-}
-const hide = document.querySelector('#hide');
-if (hide) {
-  hide.addEventListener('click', () => {
-    if (!item) {
-      return;
-    }
-    item.hideButton();
-  });
-}
-const fullSlide = document.querySelector('#fullSlide');
-if (fullSlide) {
-  fullSlide.addEventListener('click', (e) => {
-    if (e.target === fullSlide.firstChild) {
-      if (!item) {
-        return;
-      }
-      item.setFullSlide(!!(fullSlide.firstChild as HTMLInputElement).checked);
-    }
-  });
-}
-const disable = document.querySelector('#disable');
-if (disable) {
-  disable.addEventListener('click', (e) => {
-    if (e.target === disable.firstChild) {
-      if (!item) {
-        return;
-      }
-      item.setDisable(!!(disable.firstChild as HTMLInputElement).checked);
-    }
-  });
-}
-const rebounce = document.querySelector('#rebounce');
-if (rebounce) {
-  rebounce.addEventListener('click', (e) => {
-    if (e.target === rebounce.firstChild) {
-      if (!item) {
-        return;
-      }
-      item.setRebounce(!!(rebounce.firstChild as HTMLInputElement).checked);
-    }
-  });
-}
-const throttle = document.querySelector('#throttle');
-if (throttle) {
-  throttle.addEventListener('click', () => {
-    if (!item) {
-      return;
-    }
-    const input = throttle.previousSibling as HTMLInputElement;
-    item.setThrottle(+input.value);
-  });
-}
-const duration = document.querySelector('#duration');
-if (duration) {
-  duration.addEventListener('click', () => {
-    if (!item) {
-      return;
-    }
-    const input = duration.previousSibling as HTMLInputElement;
-    item.setDuration(+input.value);
-  });
-}
-const content = document.querySelector('#content');
-if (content) {
-  content.addEventListener('click', () => {
-    if (!item) {
-      return;
-    }
-    item.setContent(getContent());
-  });
-}
-const destory = document.querySelector('#destory');
-if (destory) {
-  destory.addEventListener('click', () => {
-    if (!item) {
-      return;
-    }
+
+create.onclick = () => {
+  if (item) {
     item.destory();
     item = null;
-  });
-}
-
-const item2 = new SlideView({
-  container: document.querySelectorAll('.slide-view-item')[0] as HTMLElement,
-  className: 'test',
-  content: '<div class="slide-view-cell"><span>滑动菜单示例OK</span></div>',
-  buttonFull: true,
-  buttons: [
-    {
-      confirm: {
-        color: '#000',
-        background: 'red',
-        className: 'ttt',
-        text: '确认标记为已读？',
-        icon: require('./icon/delete-confirm.png'),
-      },
-      //text: '标记为已读',
-      icon: require('./icon/delete.png'),
-      color: '#fff',
-      background: '#3D83E5',
-      className: 'kkk',
-      position: 'right',
-      collapse: false,
-      data: { id: -1 },
-    },
-    {
-      confirm: {
-        text: '确认不显示确认不显示确认不显示确认不显示确认不显示确认不显示确认不显示确认不显示确认不显示确认不显示确认不显示确认不显示确认不显示确认不显示确认不显示确认不显示',
-        icon: require('./icon/delete-confirm.png'),
-      },
-      //text: '不显示',
-      icon: require('./icon/delete.png'),
-      color: '#fff',
-      background: '#EEA151',
-      className: 'kkk',
-      position: 'right',
-      collapse: false,
-      data: { id: -1 },
-    },
-    {
-      confirm: {
-        text: '确认删除',
-        icon: require('./icon/delete-confirm.png'),
-      },
-      //text: '删除',
-      icon: require('./icon/delete.png'),
-      color: '#fff',
-      background: '#E75E58',
-      className: 'kkk',
-      position: 'right',
-      collapse: true,
-      data: { id: -1 },
-    },
-  ],
-});
-item2.on('buttonPress', (e: SlideViewEvent) => {
-  if (e.data?.del) {
-    const viewEl = item2.element.parentNode as HTMLElement;
-    viewEl.style.opacity = '0';
-    viewEl.style.transition = 'opacity 0.8s';
-    setTimeout(() => {
-      item2.destory();
-    }, 800);
   }
-});
-item2.on('press', () => {
-  item2.element.classList.add('active');
-  location.href = '/';
-});
+  const as = getActions();
+  item = new SlideView({
+    container: document.querySelectorAll('.slide-view-item')[0] as HTMLElement,
+    className: 'slideview-action',
+    content: getContent(),
+    friction: +inputFriction.value,
+    rebounce: +inputRebounce.value,
+    duration: +inputDuration.value,
+    timing: inputTiming.value as Timing,
+    leftActions: as.left,
+    rightActions: as.right,
+  });
+  item.on('show', (e) => {
+    info.innerHTML = `item-show:${e.direction}`;
+    console.log(info.innerHTML);
+  });
+  item.on('hide', () => {
+    info.innerHTML = 'item-hide';
+    console.log(info.innerHTML);
+  });
+  item.on('buttonPress', (e: IEvent) => {
+    info.innerHTML = 'item-buttonPress';
+    if (item && item.element && e.data && e.data.del) {
+      const viewEl = item.element.parentNode as HTMLElement;
+      viewEl.style.opacity = '1';
+      window.requestAnimationFrame(() => {
+        viewEl.style.opacity = '0';
+        viewEl.style.transition = 'opacity 0.8s';
+        viewEl.ontransitionend = (ee) => {
+          if (ee.target === viewEl && ee.propertyName === 'opacity') {
+            viewEl.ontransitionend = null;
+            item && item.destory();
+          }
+        };
+      });
+    }
+  });
+  item.on('buttonConfirm', () => {
+    info.innerHTML = 'item-buttonConfirm';
+    console.log(info.innerHTML);
+  });
+  item.on('press', () => {
+    info.innerHTML = 'item-press';
+    console.log(info.innerHTML);
+  });
+  item.on('longPress', () => {
+    info.innerHTML = 'item-longPress';
+    console.log(info.innerHTML);
+  });
+  item.on('doublePress', () => {
+    info.innerHTML = 'item-doublePress';
+    console.log(info.innerHTML);
+  });
+};
+actions.onclick = () => {
+  if (!item) {
+    return;
+  }
+  const as = getActions();
+  if (as.left) {
+    item.setActions(as.left);
+  }
+  if (as.right) {
+    item.setActions(as.right);
+  }
+};
+destory.onclick = () => {
+  if (!item) {
+    return;
+  }
+  item.destory();
+  item = null;
+};
+content.onclick = () => {
+  if (!item) {
+    return;
+  }
+  item.setContent(getContent());
+};
+rebounce.onclick = () => {
+  if (!item) {
+    return;
+  }
+  item.setRebounce(+inputRebounce.value);
+};
+friction.onclick = () => {
+  if (!item) {
+    return;
+  }
+  item.setFriction(+inputFriction.value);
+};
+duration.onclick = () => {
+  if (!item) {
+    return;
+  }
+  item.setDuration(+inputDuration.value);
+};
+timing.onclick = () => {
+  if (!item) {
+    return;
+  }
+  item.setTiming(inputTiming.value as Timing);
+};
+leftThreshold.onclick = () => {
+  if (!item) {
+    return;
+  }
+  item.setThreshold(+inputLeftThreshold.value, 'left');
+};
+rightThreshold.onclick = () => {
+  if (!item) {
+    return;
+  }
+  item.setThreshold(+inputRightThreshold.value, 'right');
+};
+leftDisable.onclick = () => {
+  if (!item) {
+    return;
+  }
+  item.setDisable(inputLeftDisable.checked, 'left');
+};
+rightDisable.onclick = () => {
+  if (!item) {
+    return;
+  }
+  item.setDisable(inputRightDisable.checked, 'right');
+};
+leftOvershoot.onclick = () => {
+  if (!item) {
+    return;
+  }
+  item.setOvershoot(inputLeftOvershoot.checked, 'left');
+};
+rightOvershoot.onclick = () => {
+  if (!item) {
+    return;
+  }
+  item.setOvershoot(inputRightOvershoot.checked, 'right');
+};
+showLeft.onclick = () => {
+  if (!item) {
+    return;
+  }
+  item.show('left');
+};
+showRight.onclick = () => {
+  if (!item) {
+    return;
+  }
+  item.show('right');
+};
+hide.onclick = () => {
+  if (!item) {
+    return;
+  }
+  item.hide();
+};
