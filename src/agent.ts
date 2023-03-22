@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-03-13 15:12:42
+ * @LastEditTime: 2023-03-22 17:17:34
  * @Description: ******
  */
 import Gesture, { type GestureEvent } from './gesture';
@@ -135,6 +135,7 @@ function mousedowned(
   function mousemoved(e: MouseEvent) {
     e.preventDefault();
     e.stopImmediatePropagation();
+    element.setAttribute('data-move', 'true');
     const dx = e.clientX - x0;
     const dy = e.clientY - y0;
     if (dx * dx + dy * dy >= 3 * 3) {
@@ -168,6 +169,11 @@ function mousedowned(
 
 function moused(element: HTMLElement, event: MouseEvent, mouse: AgentHandler) {
   event.preventDefault();
+  const moving = element.getAttribute('data-move');
+  if (moving) {
+    element.removeAttribute('data-move');
+    return;
+  }
   mouse({
     type: 'mouse',
     point: [event.pageX, event.pageY],
@@ -237,8 +243,8 @@ export default function agent(ele: HTMLElement, handler: AgentEventHandler) {
       ele.addEventListener('mousedown', mousedown);
     }
     let click: ((e: MouseEvent) => void) | null = null;
-    if (press) {
-      click = (e: MouseEvent) => moused(ele, e, press);
+    if (start || move || end || press) {
+      click = (e: MouseEvent) => moused(ele, e, press || (() => {}));
       ele.addEventListener('click', click);
     }
     let rightclick: ((e: MouseEvent) => void) | null = null;

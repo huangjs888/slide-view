@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2021-03-17 16:23:00
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-03-22 10:32:41
+ * @LastEditTime: 2023-03-22 16:50:38
  * @Description: ******
  */
 import SlideView, {
@@ -16,13 +16,16 @@ import './index.less';
 let ID = 0;
 let item: SlideView | null = null;
 
+const container = document.querySelectorAll(
+  '.slide-view-item',
+)[0] as HTMLElement;
 const form = document.querySelector('#actions-form') as HTMLFormElement;
 const info = document.querySelector('#info') as HTMLElement;
 const create = document.querySelector('#create') as HTMLElement;
 const destory = document.querySelector('#destory') as HTMLElement;
 const actions = document.querySelector('#actions') as HTMLElement;
 const showLeft = document.querySelector('#show-left') as HTMLElement;
-const showRight = document.querySelector('#show-left') as HTMLElement;
+const showRight = document.querySelector('#show-right') as HTMLElement;
 const hide = document.querySelector('#hide') as HTMLElement;
 const content = document.querySelector('#content') as HTMLElement;
 const inputContent = document.querySelector(
@@ -68,19 +71,19 @@ const rightOvershoot = document.querySelector('#rightOvershoot') as HTMLElement;
 const inputRightOvershoot = document.querySelector(
   '#input-rightOvershoot',
 ) as HTMLInputElement;
-const bgMap = ['#3478F3', '#F19A39', '#EA4D3E'];
-const bgConfirmMap = ['#3478F3', '#F19A39', '#EA4D3E'];
-const textMap = ['标记已读', '不显示', '删除'];
-const textConfirmMap = ['确定标记', '确定不显示', '确定删除'];
+const bgMap = ['#EA4D3E', '#F19A39', '#3478F3'];
+const bgConfirmMap = ['#C7C6CB', '#C7C6CB', '#C7C6CB'];
+const textMap = ['删除', '设旗标', '立即回复'];
+const textConfirmMap = ['确定删除', '确定设旗标', '确定回复'];
 const iconMap = [
-  require('./icon/set.png'),
-  require('./icon/edit.png'),
   require('./icon/delete.png'),
+  require('./icon/flag.png'),
+  require('./icon/reply.png'),
 ];
 const iconConfirmMap = [
-  require('./icon/set-confirm.png'),
-  require('./icon/edit-confirm.png'),
   require('./icon/delete-confirm.png'),
+  require('./icon/flag-confirm.png'),
+  require('./icon/reply-confirm.png'),
 ];
 const getActions = (): {
   left?: IActionOption;
@@ -95,52 +98,51 @@ const getActions = (): {
     const text = +(formData.get('leftText') || 3);
     const confirmText = !!formData.get('leftConfirmText');
     const confirmColor = !!formData.get('leftConfirmColor');
-    const confirmBg = !!formData.get('leftConfirmBg');
     const style = (formData.get('leftStyle') || 'rect') as ActionStyle;
     const disable = !!formData.get('leftDisable');
     const threshold = +(formData.get('leftThreshold') || 0);
     const overshoot = !!formData.get('leftOvershoot');
-    const overshootStartRatio = +(formData.get('leftOvershootStartRatio') || 0);
-    const overshootEndRatio = +(formData.get('leftOvershootEndRatio') || 0);
-    const clampWidthRatio = +(formData.get('leftClampWidthRatio') || 0);
+    const overshootEdgeSize = +(formData.get('leftOvershootEdgeSize') || 0);
+    const overshootFreeSize = +(formData.get('leftOvershootFreeSize') || 0);
+    const overallFreeSize = +(formData.get('leftOverallFreeSize') || 0);
     const items = [];
-    for (let i = 1; i <= number; i++) {
+    for (let i = number; i > 0; i--) {
       const id = ++ID;
       items.push({
         className: `action-${id}-${i}`,
-        icon: text === 1 || text === 3 ? iconMap[i] : undefined,
-        text: text === 2 || text === 3 ? textMap[i] : undefined,
+        icon: text === 1 || text === 3 ? iconMap[i - 1] : undefined,
+        text: text === 2 || text === 3 ? textMap[i - 1] : undefined,
         color: '#fff',
-        background: bgMap[i],
+        background: bgMap[i - 1],
         confirm:
-          confirmText || confirmColor || confirmBg
+          confirmText || confirmColor
             ? {
                 className: `action-confirm-${id}-${i}`,
                 icon:
-                  confirmText && (text === 1 || text === 3)
-                    ? iconConfirmMap[i]
+                  confirmColor && (text === 1 || text === 3)
+                    ? iconConfirmMap[i - 1]
                     : undefined,
                 text:
                   confirmText && (text === 2 || text === 3)
-                    ? textConfirmMap[i]
+                    ? textConfirmMap[i - 1]
                     : undefined,
-                color: confirmColor ? '#2C2C2C' : undefined,
-                background: confirmBg ? bgConfirmMap[i] : undefined,
+                color: confirmColor ? bgMap[i - 1] : undefined,
+                background: confirmColor ? bgConfirmMap[i - 1] : undefined,
               }
             : undefined,
         collapse: collapse,
-        data: { id, del: i === number && cdelete },
+        data: { id, del: i === 1 && cdelete },
       });
     }
     leftActions = {
       className: 'leftAction',
-      style: style,
-      disable: disable,
-      threshold: threshold,
-      overshoot: overshoot,
-      overshootStartRatio: overshootStartRatio,
-      overshootEndRatio: overshootEndRatio,
-      clampWidthRatio: clampWidthRatio,
+      style,
+      disable,
+      threshold,
+      overshoot,
+      overshootEdgeSize,
+      overshootFreeSize,
+      overallFreeSize,
       items,
     };
   }
@@ -152,54 +154,51 @@ const getActions = (): {
     const text = +(formData.get('rightText') || 3);
     const confirmText = !!formData.get('rightConfirmText');
     const confirmColor = !!formData.get('rightConfirmColor');
-    const confirmBg = !!formData.get('rightConfirmBg');
     const style = (formData.get('rightStyle') || 'rect') as ActionStyle;
     const disable = !!formData.get('rightDisable');
     const threshold = +(formData.get('rightThreshold') || 0);
     const overshoot = !!formData.get('rightOvershoot');
-    const overshootStartRatio = +(
-      formData.get('rightOvershootStartRatio') || 0
-    );
-    const overshootEndRatio = +(formData.get('rightOvershootEndRatio') || 0);
-    const clampWidthRatio = +(formData.get('rightClampWidthRatio') || 0);
+    const overshootEdgeSize = +(formData.get('rightOvershootEdgeSize') || 0);
+    const overshootFreeSize = +(formData.get('rightOvershootFreeSize') || 0);
+    const overallFreeSize = +(formData.get('rightOverallFreeSize') || 0);
     const items = [];
-    for (let i = 1; i <= number; i++) {
+    for (let i = number; i > 0; i--) {
       const id = ++ID;
       items.push({
         className: `action-${id}-${i}`,
-        icon: text === 1 || text === 3 ? iconMap[i] : undefined,
-        text: text === 2 || text === 3 ? textMap[i] : undefined,
+        icon: text === 1 || text === 3 ? iconMap[i - 1] : undefined,
+        text: text === 2 || text === 3 ? textMap[i - 1] : undefined,
         color: '#fff',
-        background: bgMap[i],
+        background: bgMap[i - 1],
         confirm:
-          confirmText || confirmColor || confirmBg
+          confirmText || confirmColor
             ? {
                 className: `action-confirm-${id}-${i}`,
                 icon:
-                  confirmText && (text === 1 || text === 3)
-                    ? iconConfirmMap[i]
+                  confirmColor && (text === 1 || text === 3)
+                    ? iconConfirmMap[i - 1]
                     : undefined,
                 text:
                   confirmText && (text === 2 || text === 3)
-                    ? textConfirmMap[i]
+                    ? textConfirmMap[i - 1]
                     : undefined,
-                color: confirmColor ? '#2C2C2C' : undefined,
-                background: confirmBg ? bgConfirmMap[i] : undefined,
+                color: confirmColor ? bgMap[i - 1] : undefined,
+                background: confirmColor ? bgConfirmMap[i - 1] : undefined,
               }
             : undefined,
         collapse: collapse,
-        data: { id, del: i === number && cdelete },
+        data: { id, del: i === 1 && cdelete },
       });
     }
     rightActions = {
       className: 'rightAction',
-      style: style,
-      disable: disable,
-      threshold: threshold,
-      overshoot: overshoot,
-      overshootStartRatio: overshootStartRatio,
-      overshootEndRatio: overshootEndRatio,
-      clampWidthRatio: clampWidthRatio,
+      style,
+      disable,
+      threshold,
+      overshoot,
+      overshootEdgeSize,
+      overshootFreeSize,
+      overallFreeSize,
       items,
     };
   }
@@ -218,10 +217,11 @@ create.onclick = () => {
   if (item) {
     item.destory();
     item = null;
+    ID = 0;
   }
   const as = getActions();
   item = new SlideView({
-    container: document.querySelectorAll('.slide-view-item')[0] as HTMLElement,
+    container,
     className: 'slideview-action',
     content: getContent(),
     friction: +inputFriction.value,
@@ -240,7 +240,7 @@ create.onclick = () => {
     console.log(info.innerHTML);
   });
   item.on('buttonPress', (e: IEvent) => {
-    info.innerHTML = 'item-buttonPress';
+    info.innerHTML = `item-buttonPress: ${e.data && e.data.id}`;
     if (item && item.element && e.data && e.data.del) {
       const viewEl = item.element.parentNode as HTMLElement;
       viewEl.style.opacity = '1';
@@ -251,20 +251,24 @@ create.onclick = () => {
           if (ee.target === viewEl && ee.propertyName === 'opacity') {
             viewEl.ontransitionend = null;
             item && item.destory();
+            viewEl.style.opacity = '1';
+            viewEl.style.transition = '';
           }
         };
       });
     }
   });
-  item.on('buttonConfirm', () => {
-    info.innerHTML = 'item-buttonConfirm';
+  item.on('buttonConfirm', (e: IEvent) => {
+    info.innerHTML = `item-buttonConfirm: ${e.data && e.data.id}`;
     console.log(info.innerHTML);
   });
   item.on('press', () => {
+    container.classList.add('active');
     info.innerHTML = 'item-press';
     console.log(info.innerHTML);
   });
   item.on('longPress', () => {
+    container.classList.remove('active');
     info.innerHTML = 'item-longPress';
     console.log(info.innerHTML);
   });
@@ -279,10 +283,10 @@ actions.onclick = () => {
   }
   const as = getActions();
   if (as.left) {
-    item.setActions(as.left);
+    item.setActions(as.left, 'left');
   }
   if (as.right) {
-    item.setActions(as.right);
+    item.setActions(as.right, 'right');
   }
 };
 destory.onclick = () => {
@@ -291,6 +295,7 @@ destory.onclick = () => {
   }
   item.destory();
   item = null;
+  ID = 0;
 };
 content.onclick = () => {
   if (!item) {

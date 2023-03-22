@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-03-15 13:51:23
+ * @LastEditTime: 2023-03-22 15:51:28
  * @Description: ******
  */
 
@@ -45,9 +45,10 @@ export function getDirection([x0, y0]: number[], [x1, y1]: number[]) {
 }
 
 export function rebounceSize(value: number, friction: number) {
+  const val = value || 1;
   return (
-    Math.pow(Math.abs(value || 1), Math.min(1, Math.max(0, friction))) *
-    (value > 0 ? 1 : -1)
+    (Math.pow(Math.abs(val), Math.min(1, Math.max(0, friction))) * val) /
+    Math.abs(val)
   );
 }
 

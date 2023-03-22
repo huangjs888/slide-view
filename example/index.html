@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2021-10-15 15:24:21
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-03-22 10:30:04
+ * @LastEditTime: 2023-03-22 16:44:58
  * @Description: ******
 -->
 <!DOCTYPE html>
@@ -12,7 +12,7 @@
     <meta
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scaleable=no"
       name="viewport" />
-    <title>slide-view</title>
+    <title>滑动删除</title>
   </head>
 
   <body>
@@ -85,13 +85,12 @@
               confirm:<br />
               <div class="item-div">
                 <label>
-                  <input name="leftConfirmText" type="checkbox" />text/icon
+                  <input name="leftConfirmText" type="checkbox" />text
                 </label>
                 <label>
-                  <input name="leftConfirmColor" type="checkbox" />color
-                </label>
-                <label>
-                  <input name="leftConfirmBg" type="checkbox" />bg
+                  <input
+                    name="leftConfirmColor"
+                    type="checkbox" />color/background
                 </label>
               </div>
             </div>
@@ -132,19 +131,16 @@
               </label>
             </div>
             <div class="item-div">
-              OSR:
-              <input
-                name="leftOvershootStartRatio"
-                type="number"
-                value="0.75" />
+              overshootEdgeSize:
+              <input name="leftOvershootEdgeSize" type="number" value="80" />
             </div>
             <div class="item-div">
-              OER:
-              <input name="leftOvershootEndRatio" type="number" value="0.95" />
+              overshootFreeSize:
+              <input name="leftOvershootFreeSize" type="number" value="30" />
             </div>
             <div class="item-div">
-              CWR:
-              <input name="leftClampWidthRatio" type="number" value="0.85" />
+              overallFreeSize:
+              <input name="leftOverallFreeSize" type="number" value="60" />
             </div>
           </div>
           <div class="col">
@@ -190,13 +186,12 @@
               confirm:<br />
               <div class="item-div">
                 <label>
-                  <input name="rightConfirmText" type="checkbox" />text/icon
+                  <input name="rightConfirmText" type="checkbox" />text
                 </label>
                 <label>
-                  <input name="rightConfirmColor" type="checkbox" />color
-                </label>
-                <label>
-                  <input name="rightConfirmBg" type="checkbox" />bg
+                  <input
+                    name="rightConfirmColor"
+                    type="checkbox" />color/background
                 </label>
               </div>
             </div>
@@ -241,53 +236,70 @@
               </label>
             </div>
             <div class="item-div">
-              OSR:
-              <input
-                name="rightOvershootStartRatio"
-                type="number"
-                value="0.75" />
+              overshootEdgeSize:
+              <input name="rightOvershootEdgeSize" type="number" value="80" />
             </div>
             <div class="item-div">
-              OER:
-              <input name="rightOvershootEndRatio" type="number" value="0.95" />
+              overshootFreeSize:
+              <input name="rightOvershootFreeSize" type="number" value="30" />
             </div>
             <div class="item-div">
-              CWR:
-              <input name="rightClampWidthRatio" type="number" value="0.85" />
+              overallFreeSize:
+              <input name="rightOverallFreeSize" type="number" value="60" />
             </div>
           </div>
         </form>
       </div>
       <div class="item-div">
+        <div class="item-div" style="margin-right: 10px">
+          rebounce:
+          <input
+            style="max-width: 80px"
+            id="input-rebounce"
+            type="number"
+            value="12" />
+          <button type="button" id="rebounce">ok</button>
+        </div>
+        <div class="item-div">
+          friction:
+          <input
+            style="max-width: 80px"
+            id="input-friction"
+            type="number"
+            value="0.6" />
+          <button type="button" id="friction">ok</button>
+        </div>
+      </div>
+      <div class="item-div">
+        <div class="item-div" style="margin-right: 10px">
+          duration:
+          <input
+            style="max-width: 80px"
+            id="input-duration"
+            type="number"
+            value="0.4" />
+          <button type="button" id="duration">ok</button>
+        </div>
+        <div class="item-div">
+          timing:
+          <select style="max-width: 80px" id="input-timing">
+            <option value="linear">linear</option>
+            <option value="ease" selected>ease</option>
+            <option value="ease-in">ease-in</option>
+            <option value="ease-out">ease-out</option>
+            <option value="ease-in-out">ease-in-out</option>
+          </select>
+          <button type="button" id="timing">ok</button>
+        </div>
+      </div>
+      <div class="item-div">
         content:
-        <input id="input-content" type="text" value="滑动菜单示例" />
+        <input
+          style="width: 200px"
+          id="input-content"
+          type="text"
+          value="滑动菜单示例" />
         <button type="button" id="content">ok</button>
-      </div>
-      <div class="item-div">
-        rebounce:
-        <input id="input-rebounce" type="number" value="12" />
-        <button type="button" id="rebounce">ok</button>
-      </div>
-      <div class="item-div">
-        friction:
-        <input id="input-friction" type="number" value="0.6" />
-        <button type="button" id="friction">ok</button>
-      </div>
-      <div class="item-div">
-        duration:
-        <input id="input-duration" type="number" value="0.4" />
-        <button type="button" id="duration">ok</button>
-      </div>
-      <div class="item-div">
-        timing:
-        <select id="input-timing">
-          <option value="linear">linear</option>
-          <option value="ease" selected>ease</option>
-          <option value="ease-in">ease-in</option>
-          <option value="ease-out">ease-out</option>
-          <option value="ease-in-out">ease-in-out</option>
-        </select>
-        <button type="button" id="timing">ok</button>
       </div>
     </div>
   </body>

@@ -6,6 +6,7 @@ body {
   padding: 0;
   overflow: hidden;
   background: #f0f0f0;
+  overflow-y: auto;
 }
 h2 {
   margin-top: 5px;
@@ -25,7 +26,7 @@ h2 {
       display: flex;
       align-items: center;
     }
-    .active .slide-view-cell {
+    &.active .slide-view-cell {
       background: #ddd;
     }
   }
@@ -48,19 +49,14 @@ h2 {
     button {
       margin: 0px 3px;
     }
-    input[type='text'],
-    input[type='number'],
-    select {
-      max-width: 160px;
-    }
     input[name='leftThreshold'],
     input[name='rightThreshold'],
-    input[name='leftOvershootStartRatio'],
-    input[name='rightOvershootStartRatio'],
-    input[name='leftOvershootEndRatio'],
-    input[name='rightOvershootEndRatio'],
-    input[name='leftClampWidthRatio'],
-    input[name='rightClampWidthRatio'] {
+    input[name='leftOvershootEdgeSize'],
+    input[name='rightOvershootEdgeSize'],
+    input[name='leftOvershootFreeSize'],
+    input[name='rightOvershootFreeSize'],
+    input[name='leftOverallFreeSize'],
+    input[name='rightOverallFreeSize'] {
       max-width: 58px;
     }
     .col {
