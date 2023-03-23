@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2021-05-10 15:55:29
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-03-22 17:33:49
+ * @LastEditTime: 2023-03-22 17:44:34
  * @Description: ******
 -->
 ## slide-view
@@ -10,7 +10,7 @@ H5列表左右滑动操作
 ### 使用方法
 ```html
   <body>
-    <h2>左滑删除示例</h2>
+    <h2>滑动操作示例</h2>
     <div class="slide-view-example">
       <div class="slide-view-item"></div>
     </div>
@@ -23,7 +23,7 @@ H5列表左右滑动操作
   const cell = document.createElement('div');
   cell.classList.add('slide-view-cell');
   const span = document.createElement('span');
-  span.innerText = '左滑菜单（text）';
+  span.innerText = '滑动操作示例';
   cell.appendChild(span);
   const item = item = new SlideView({
     container,

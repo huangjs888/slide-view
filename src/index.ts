@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-03-22 16:41:45
+ * @LastEditTime: 2023-03-23 10:28:58
  * @Description: ******
  */
 
@@ -371,7 +371,7 @@ const move = function move(this: SlideView, e: AgentEvent) {
             width: width - margin,
           });
         }
-        // 这里需不需要来一点阻尼？感觉苹果是有的
+        // 这里大于overallSize之后需不需要来一点点阻尼？感觉苹果是有一点点的，这里先设置一个0.95的阻尼
         if (Math.abs(currentTranslate) >= Math.abs(overallSize)) {
           // 这里不能根据数值大小来比较，因为this._startTranslate和overallSize不一定是同正或同负
           const _overallSize =
@@ -457,8 +457,23 @@ const end = function end(this: SlideView, e: AgentEvent) {
       ]);
       return;
     }
-    // 右边按钮展示状态下往右滑动了，或者右边按钮未展示情况下，左滑出的距离不足滑出阈值
+    // 展开时，滑出的距离不足滑出阈值则不展开
     const delta = currentPoint[0] - startPoint[0];
+    // 微信是只要往反方向滑就关闭，并且滑出之后，如果继续有弹性滑出，弹性滑出不足阈值也会关闭
+    /* if (
+      (this._translate > 0 && delta < 0) ||
+      (this._translate < 0 && delta > 0) ||
+      Math.abs(delta) < actions.threshold
+    ) {
+      this.hide();
+      return;
+    } */
+    // 苹果是只有反方向滑到阈值之内才会关闭，其他不关闭
+    /* if (Math.abs(this._translate) < actions.threshold) {
+      this.hide();
+      return;
+    } */
+    // 只要往反方向滑就关闭，其他不关闭
     if (
       (this._translate > 0 && delta < 0) ||
       (this._translate < 0 && delta > 0) ||
@@ -913,7 +928,7 @@ class SlideView extends EventTarget<
     }
   }
   setActions(actions: IActionOption = {}, direction: Direction = 'both') {
-    if (this._destory) {
+    if (this._destory || direction === 'none') {
       return;
     }
     // actions: 不传为默认值{}，不传，传其它，只要没有items的，都认为是删除按钮
@@ -1022,21 +1037,32 @@ class SlideView extends EventTarget<
         };
       }
     };
-    // 重新设置按钮时应该先收起（因为刚插入的按钮是没有transform的，当然可以根据收起状态来计算，不想计算了）
+    const _setActionsAfterCollapse = (_direction: 'left' | 'right') => {
+      // 重新设置按钮时应该先收起
+      this.hide().then(() => {
+        _setActions(_direction);
+        this.show(_direction);
+      });
+    };
     const shown =
       this._translate > 0 ? 'left' : this._translate < 0 ? 'right' : 'none';
-    this.hide().then(() => {
-      // direction传其它，则属于无效设置
-      if (direction === 'both' || direction === 'left') {
+    if (direction === 'both') {
+      if (shown !== 'none') {
+        _setActionsAfterCollapse(shown);
+      }
+      if (shown !== 'left') {
         _setActions('left');
       }
-      if (direction === 'both' || direction === 'right') {
+      if (shown !== 'right') {
         _setActions('right');
       }
-      if (shown !== 'none') {
-        this.show(shown);
+    } else {
+      if (shown === direction) {
+        _setActionsAfterCollapse(direction);
+      } else {
+        _setActions(direction);
       }
-    });
+    }
   }
   toggle(direction: Direction = 'right') {
     if (this._destory) {

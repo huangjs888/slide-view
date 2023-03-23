@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2021-03-17 16:23:00
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-03-22 16:50:38
+ * @LastEditTime: 2023-03-23 10:13:16
  * @Description: ******
  */
 import SlideView, {
@@ -15,7 +15,6 @@ import './index.less';
 
 let ID = 0;
 let item: SlideView | null = null;
-
 const container = document.querySelectorAll(
   '.slide-view-item',
 )[0] as HTMLElement;
@@ -212,7 +211,6 @@ const getContent = (): HTMLElement => {
   cell.appendChild(span);
   return cell;
 };
-
 create.onclick = () => {
   if (item) {
     item.destory();
@@ -282,12 +280,9 @@ actions.onclick = () => {
     return;
   }
   const as = getActions();
-  if (as.left) {
-    item.setActions(as.left, 'left');
-  }
-  if (as.right) {
-    item.setActions(as.right, 'right');
-  }
+  // 如果某一个没有按钮，会删除
+  item.setActions(as.left, 'left');
+  item.setActions(as.right, 'right');
 };
 destory.onclick = () => {
   if (!item) {
