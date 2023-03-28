@@ -376,3 +376,5 @@ hide.onclick = () => {
   }
   item.hide();
 };
+
+create.click();

@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2021-05-10 15:55:29
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-03-22 17:44:34
+ * @LastEditTime: 2023-03-23 11:26:32
  * @Description: ******
 -->
 ## slide-view
@@ -17,6 +17,7 @@ H5列表左右滑动操作
   </body>
 ```
 ```javascript
+
   import SlideView from '../lib';
 
   const container = document.querySelectorAll('.slide-view-item')[0];
@@ -25,7 +26,7 @@ H5列表左右滑动操作
   const span = document.createElement('span');
   span.innerText = '滑动操作示例';
   cell.appendChild(span);
-  const item = item = new SlideView({
+  const item = new SlideView({
     container,
     className: 'slideview-action',
     content: cell,
@@ -35,53 +36,55 @@ H5列表左右滑动操作
     timing: 'ease',
     rightActions: {
       className: 'leftAction',
-      style:'rect',
-      disable:false,
-      threshold:40,
-      overshoot:true,
-      items:[{
-        text: '立即回复',
-        color: '#fff',
-        background: '#3478F3',
-        confirm:{
-          text:'确定回复',
+      style: 'rect',
+      disable: false,
+      threshold: 40,
+      overshoot: true,
+      items: [
+        {
+          text: '立即回复',
+          color: '#fff',
+          background: '#3478F3',
+          confirm: {
+            text: '确定回复',
+          },
+          collapse: false,
+          data: { id: 1 },
         },
-        collapse: false,
-        data: {  },
-      }，{
-        text: '设旗标',
-        color: '#fff',
-        background: '#F19A39',
-        confirm:{
-          text:'确定设旗标',
+        {
+          text: '设旗标',
+          color: '#fff',
+          background: '#F19A39',
+          confirm: {
+            text: '确定设旗标',
+          },
+          collapse: true,
+          data: { id: 2 },
         },
-        collapse: true,
-        data: {  },
-      }，{
-        icon:'./delete.png',
-        text: '删除',
-        color: '#fff',
-        background: '#EA4D3E',
-        confirm:{
-          text:'删除',
-          icon:'./delete-black.png',
+        {
+          icon: './delete.png',
+          text: '删除',
+          color: '#fff',
+          background: '#EA4D3E',
+          confirm: {
+            text: '删除',
+            icon: './delete-black.png',
+          },
+          collapse: false,
+          data: { id: 3 },
         },
-        collapse: false,
-        data: {  },
-      }],
+      ],
     },
   });
   item.on('show', (e) => {
-    info.innerHTML = `item-show:${e.direction}`;
-    console.log(info.innerHTML);
+    console.log(`item-show:${e.direction}`);
   });
   item.on('hide', () => {
-    info.innerHTML = 'item-hide';
-    console.log(info.innerHTML);
+    console.log('item-hide');
   });
   item.on('buttonPress', (e) => {
-    info.innerHTML = `item-buttonPress: ${e.data && e.data.id}`;
-    if (item && item.element && e.data && e.data.del) {
+    console.log(`item-buttonPress: ${e.data && e.data.id}`);
+    if (item.element && e.data && e.data.del) {
       const viewEl = item.element.parentNode;
       viewEl.style.opacity = '1';
       window.requestAnimationFrame(() => {
@@ -99,22 +102,16 @@ H5列表左右滑动操作
     }
   });
   item.on('buttonConfirm', (e) => {
-    info.innerHTML = `item-buttonConfirm: ${e.data && e.data.id}`;
-    console.log(info.innerHTML);
+    console.log(`item-buttonConfirm: ${e.data && e.data.id}`);
   });
   item.on('press', () => {
-    container.classList.add('active');
-    info.innerHTML = 'item-press';
-    console.log(info.innerHTML);
+    console.log('item-press');
   });
   item.on('longPress', () => {
-    container.classList.remove('active');
-    info.innerHTML = 'item-longPress';
-    console.log(info.innerHTML);
+    console.log('item-longPress');
   });
   item.on('doublePress', () => {
-    info.innerHTML = 'item-doublePress';
-    console.log(info.innerHTML);
+    console.log('item-doublePress');
   });
 
 ```
