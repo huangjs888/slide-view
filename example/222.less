@@ -81,10 +81,26 @@ h2 {
     }
   }
 }
-
 .hjs-slideview {
   position: relative;
   overflow: hidden;
+}
+.hjs-slideview__left {
+  position: absolute;
+  top: 0;
+  right: 100%;
+  bottom: 0;
+  left: auto;
+  width: 100%;
+  height: 100%;
+}
+.hjs-slideview__right {
+  position: absolute;
+  top: 0;
+  right: auto;
+  left: 100%;
+  width: 100%;
+  height: 100%;
 }
 .hjs-slideview__content {
   position: relative;
@@ -92,36 +108,40 @@ h2 {
   width: 100%;
   height: 100%;
 }
-.hjs-slideview__left,
-.hjs-slideview__right,
-.hjs-slideview__actions,
-.hjs-slideview__action__outer,
+.hjs-slideview__actions {
+  width: 100%;
+  height: 100%;
+}
+.hjs-slideview__action__wrapper,
 .hjs-slideview__action__inner {
   position: absolute;
   top: 0;
   bottom: 0;
-  left: 0;
-  right: 0;
   width: 100%;
   height: 100%;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-sizing: border-box;
 }
-.hjs-slideview__left {
-  right: 100%;
-  left: auto;
+.hjs-slideview__actions__drawer .hjs-slideview__action__wrapper,
+.hjs-slideview__actions__drawer .hjs-slideview__action__inner {
+  border-radius: 3px;
+  overflow: hidden;
 }
-.hjs-slideview__right {
-  right: auto;
-  left: 100%;
+.hjs-slideview__actions__drawer .hjs-slideview__action__wrapper:last-child {
+  border-radius: 3px 9px 9px 3px;
 }
-.hjs-slideview__left .hjs-slideview__action__outer {
+.hjs-slideview__actions__drawer
+  .hjs-slideview__action__wrapper:first-child
+  .hjs-slideview__action__inner {
+  border-radius: 9px 3px 3px 9px;
+}
+.hjs-slideview__left .hjs-slideview__action__wrapper {
   right: 0;
   left: auto;
 }
-.hjs-slideview__right .hjs-slideview__action__outer {
+.hjs-slideview__right .hjs-slideview__action__wrapper {
   right: auto;
   left: 0;
 }
@@ -132,6 +152,17 @@ h2 {
   justify-content: flex-start;
 }
 
+
+
+
+
+
+
+
+
+
+
+
 .hjs-slideview__actions__round .hjs-slideview__action__inner {
   padding: 10px 0;
 }
@@ -141,7 +172,6 @@ h2 {
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  width: auto;
   max-width: 100%;
   height: 100%;
   padding: 0 20px;

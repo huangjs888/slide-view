@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-04-03 11:01:26
+ * @LastEditTime: 2023-03-31 14:46:08
  * @Description: ******
  */
 
@@ -72,7 +72,7 @@ const confirmStyle = function (
   isConfirm: boolean = false,
 ) {
   const {
-    innerEl,
+    wrapElement,
     element,
     confirm = {}, // isConfirm为true，confirm必然存在
     ...rest
@@ -95,7 +95,7 @@ const confirmStyle = function (
         : 'none',
   });
   if (actionStyle !== 'round') {
-    setStyle(innerEl, {
+    setStyle(wrapElement, {
       background: background || 'inherit',
     });
   }
@@ -147,7 +147,7 @@ const cTransform = function cTransform(
     // 前面已有按钮的占比距离
     let transformTotal = 0;
     for (let i = items.length - 1; i >= 0; i--) {
-      const { outerEl, width } = items[i];
+      const { wrapElement, width } = items[i];
       if (items.length === 1) {
         // 如果是仅有一个按钮，确认的时候设置2倍变化
         setStyle(contentEl, {
@@ -164,7 +164,7 @@ const cTransform = function cTransform(
         } else {
           transformx = (width + transformTotal) * factor;
         }
-        setStyle(outerEl, {
+        setStyle(wrapElement, {
           transform: `translate3d(${transformx}px, 0, 0)`,
           transition,
         });
@@ -174,7 +174,7 @@ const cTransform = function cTransform(
           transformx = (width + transformTotal) * factor;
         }
         // 大于index的一定都是压在上面的，压在上面的需要收起，而小于index压在下面的不需要变化
-        setStyle(outerEl, {
+        setStyle(wrapElement, {
           transform: `translate3d(${transformx}px, 0, 0)`,
           transition,
         });
@@ -198,8 +198,9 @@ const transform = function transform(
   translate: number,
   duration: number = this.duration,
 ) {
-  const { contentEl, leftActions, rightActions, timing } = this;
+  const { rightEl, contentEl, leftActions, rightActions, timing } = this;
   if (
+    !rightEl ||
     !contentEl ||
     ((!leftActions || leftActions.disable) &&
       (!rightActions || rightActions.disable))
@@ -207,20 +208,20 @@ const transform = function transform(
     return;
   }
   const transition = duration <= 0 ? '' : `transform ${duration}s ${timing} 0s`;
-  const aTransform = ({ items, width: tWidth }: MergeAction) => {
+  const aTransform = ({ items, overallSize }: MergeAction, x: number) => {
     // 前面已有按钮的占比距离
     let transformTotal = 0;
     const len = items.length - 1;
     for (let i = len; i >= 0; i--) {
-      const { outerEl, width } = items[i];
+      const { wrapElement, width } = items[i];
       // 当前按钮需要滑出的占比距离
-      const transformb = (width / tWidth) * translate;
+      const transformb = (width / overallSize) * x;
       // 当前按钮滑出距离应该是占比距离+前面已有按钮的占比距离
       const transformx = transformb + transformTotal;
       // 左边或右边的最后一个按钮
-      setStyle(outerEl, {
+      setStyle(wrapElement, {
         transform: `translate3d(${
-          i === len && this._overshooting ? translate : transformx
+          i === len && this._overshooting ? x : transformx - x
         }px, 0, 0)`,
         transition,
       });
@@ -237,10 +238,30 @@ const transform = function transform(
     // 这里是左右都进行变换，还是说根据translate的正负来判断只变换某一边的呢（因为另一边处于隐藏状态无需变换耗能）？
     // 答案是都要进行变换，因为存在一种情况，即滑动太快，left的translate还未走到0（没有完全收起），下一把就right了。
     if (leftActions) {
-      aTransform(leftActions);
+      const { overallSize } = leftActions;
+      aTransform(
+        leftActions,
+        overallSize >= translate && translate >= 0 ? overallSize : translate,
+      );
     }
     if (rightActions) {
-      aTransform(rightActions);
+      const { overallSize } = rightActions;
+      setStyle(rightEl, {
+        transform: `translate3d(${translate}px, 0, 0)`,
+        transition,
+      });
+      setStyle(rightEl.firstChild as HTMLElement, {
+        transform: `translate3d(${
+          -overallSize <= translate && translate <= 0
+            ? -overallSize - translate
+            : 0
+        }px, 0, 0)`,
+        transition,
+      });
+      aTransform(
+        rightActions,
+        -overallSize <= translate && translate <= 0 ? -overallSize : translate,
+      );
     }
   });
 };
@@ -316,7 +337,7 @@ const move = function move(this: SlideView, e: AgentEvent) {
     const overshoot = actions.overshoot;
     const overshootEdgeSize = actions.overshootEdgeSize;
     const overshootSize = vector * actions.overshootSize;
-    const overallSize = vector * actions.width;
+    const overallSize = vector * actions.overallSize;
     if (overshoot) {
       // 如果手指从容器一半之外开始移动，只要手指移动到接近边缘，就可以overshoot
       if (this._offset) {
@@ -654,7 +675,7 @@ const buttonPress = function buttonPress(
       confirmStyle(actions.style, item, true);
       // 设置回弹效果，第一个按钮和圆型按钮不需要
       if (rebounce > 0 && actions.style !== 'round' && index !== 0) {
-        onOnceTransitionEnd(item.outerEl, () => {
+        onOnceTransitionEnd(item.wrapElement, () => {
           // 该事件执行时确保当前还处于确认状态，否则不能再执行
           if (
             this._confirming &&
@@ -913,7 +934,7 @@ class SlideView extends EventTarget<
       if (this.leftActions && (direction === 'both' || direction === 'left')) {
         this.leftActions.threshold = Math.min(
           _threshold,
-          this.leftActions.width,
+          this.leftActions.overallSize,
         );
       }
       if (
@@ -922,7 +943,7 @@ class SlideView extends EventTarget<
       ) {
         this.rightActions.threshold = Math.min(
           _threshold,
-          this.rightActions.width,
+          this.rightActions.overallSize,
         );
       }
     }
@@ -961,6 +982,10 @@ class SlideView extends EventTarget<
         let totalWidth = 0;
         let newItems = items.map((item, index) => {
           const { text, icon } = item;
+          const wrapEl = addClass(
+            document.createElement('div'),
+            'hjs-slideview__action__wrap',
+          );
           const itemEl = addClass(
             document.createElement('div'),
             'hjs-slideview__action',
@@ -982,22 +1007,12 @@ class SlideView extends EventTarget<
               ),
             );
           }
-          const innerEl = addClass(
-            document.createElement('div'),
-            'hjs-slideview__action__inner',
-          );
-          innerEl.appendChild(itemEl);
-          const outerEl = addClass(
-            document.createElement('div'),
-            'hjs-slideview__action__outer',
-          );
-          outerEl.appendChild(innerEl);
-          actionEl.appendChild(outerEl);
+          wrapEl.appendChild(itemEl);
+          actionEl.appendChild(wrapEl);
           const actionItem: MergeActionItem = {
             ...item,
+            wrapElement: wrapEl,
             element: itemEl,
-            outerEl,
-            innerEl,
             width: 0,
             margin: 0,
           };
@@ -1012,13 +1027,13 @@ class SlideView extends EventTarget<
             margin,
           };
         });
-        const tWidth = Math.min(
+        const overallSize = Math.min(
           totalWidth,
           Math.max(this._elWidth - overallFreeSize, 0),
         );
         newItems = newItems.map((item) => {
           const { element, width, margin } = item;
-          const newWidth = (tWidth * width) / totalWidth;
+          const newWidth = (overallSize * width) / totalWidth;
           setStyle(element, { width: newWidth - margin });
           return {
             ...item,
@@ -1029,17 +1044,16 @@ class SlideView extends EventTarget<
           style,
           disable,
           overshoot,
+          overallSize,
           overshootSize: Math.min(
             this._elWidth,
-            Math.max(this._elWidth - overshootFreeSize, tWidth),
+            Math.max(this._elWidth - overshootFreeSize, overallSize),
           ),
           overshootEdgeSize: Math.min(
             this._elWidth * 0.5,
             Math.max(0, overshootEdgeSize),
           ),
-          threshold: Math.min(tWidth, Math.max(threshold, 0)),
-          width: tWidth,
-          gap: 0,
+          threshold: Math.min(overallSize, Math.max(threshold, 0)),
           items: newItems,
         };
       }
@@ -1098,7 +1112,7 @@ class SlideView extends EventTarget<
       }
       const actions = __direction === 'left' ? leftActions : rightActions;
       const factor = __direction === 'left' ? 1 : -1;
-      const maxTranslate = !actions ? 0 : actions.width * factor;
+      const maxTranslate = !actions ? 0 : actions.overallSize * factor;
       if (this._translate === maxTranslate) {
         resolve();
         return;
@@ -1215,8 +1229,7 @@ export type Confirm = {
 };
 
 type MergeActionItem = {
-  outerEl: HTMLElement; //当前按钮外包裹元素
-  innerEl: HTMLElement; //当前按钮内包裹元素
+  wrapElement: HTMLElement; //当前按钮包装元素
   element: HTMLElement; //当前按钮元素
   width: number; // 当前按钮的宽度
   margin: number; // 当前按钮的左右margin和
@@ -1229,8 +1242,7 @@ type MergeAction = {
   overshoot: boolean; // 滑动超出(仅限最后一个按钮)
   overshootSize: number; // overshoot时超过这尺寸，最后一个按钮直接滑动到这个尺寸
   overshootEdgeSize: number; // 手指滑动到接近屏幕边缘尺寸（小于这个尺寸就overshoot）
-  width: number; // 所有按钮展开情况下总尺寸
-  gap: number; // 元素之间的总间距
+  overallSize: number; // 所有按钮展开情况下总尺寸
   items: MergeActionItem[]; // 按钮配置
 };
 
