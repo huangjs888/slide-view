@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-04-11 10:13:11
+ * @LastEditTime: 2023-04-11 11:24:57
  * @Description: ******
  */
 
@@ -203,7 +203,11 @@ const transform = function transform(
     return;
   }
   let factor = 0;
-  let transition = duration <= 0 ? '' : `transform ${duration}s ${timing} 0s`;
+  const transition = duration <= 0 ? '' : `transform ${duration}s ${timing} 0s`;
+  const wTransition =
+    duration <= 0
+      ? ''
+      : `width ${duration}s ${timing} 0s, transform ${duration}s ${timing} 0s`;
   const aTransform = ({
     style,
     items,
@@ -215,12 +219,10 @@ const transform = function transform(
     let xMove = translate;
     let delta = 0;
     if (style === 'drawer') {
-      transition =
-        duration <= 0 ? '' : `width ${duration}s ${timing} 0s, ${transition}`;
       setStyle(element, {
-        width: Math.abs(translate),
+        width: Math.max(Math.abs(translate), tWidth),
         transform: `translate3d(${translate}px, 0, 0)`,
-        transition,
+        transition: wTransition,
       });
       xMove = factor * Math.max(tWidth, Math.abs(translate));
       delta = -translate;
@@ -239,15 +241,16 @@ const transform = function transform(
         // 只有width不为100%时才设置具体宽度，因为overshoot的时候需要设置100%
         styleObj = {
           width: Math.max(Math.abs(transformw), width),
+          transition: wTransition,
         };
       }
       // 左边或右边的最后一个按钮
       setStyle(wrapper, {
-        ...styleObj,
         transform: `translate3d(${
           (i === len && this._overshooting ? translate : transformx) + delta
         }px, 0, 0)`,
         transition,
+        ...styleObj,
       });
       // 累计已滑出按钮的占比距离
       transformTotal += transformb + factor * gap[0];
@@ -741,8 +744,13 @@ const buttonPress = function buttonPress(
         if (actions.items.length === 1) {
           translate = Math.min(Math.abs(2 * translate), elWidth) * factor;
         }
-        // 设置回弹效果，第一个按钮不需要
-        if (rebounce > 0 && index !== 0) {
+        // 设置回弹效果，第一个按钮没有
+        if (
+          rebounce > 0 &&
+          index !== 0 /*  &&
+          parseFloat(window.getComputedStyle(item.wrapper, null).width) ===
+            elWidth */
+        ) {
           onOnceTransitionEnd(item.wrapper, () => {
             // 该事件执行时确保当前还处于确认状态，否则不能再执行
             if (
@@ -999,9 +1007,7 @@ class SlideView extends EventTarget<
         } = actions;
         const tElement = addClass(
           document.createElement('div'),
-          `hjs-slideview__actions hjs-slideview__actions__${style} ${
-            className || ''
-          }`,
+          `hjs-slideview__actions ${className || ''}`,
         );
         parentEl.appendChild(tElement);
         let tWidth = 0;
@@ -1061,6 +1067,7 @@ class SlideView extends EventTarget<
           return {
             ...tItem,
             gap: [leftGap, rightGap],
+            fixedGap: leftGap === 0 && rightGap === 0 ? false : fixedGap, // 左右gap都为0的情况，gudinggap无意义
             width,
           };
         });
@@ -1248,8 +1255,6 @@ export type Timing =
   | 'ease-out'
   | 'ease-in-out'
   | `cubic-bezier(${number},${number},${number},${number})`;
-
-// export type ActionStyle = '' | 'round' | 'rect';
 
 export type ActionStyle = 'drawer' | 'accordion';
 

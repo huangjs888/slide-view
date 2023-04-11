@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2021-10-15 15:24:21
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-03-28 16:34:36
+ * @LastEditTime: 2023-04-11 11:33:28
  * @Description: ******
 -->
 <!DOCTYPE html>
@@ -22,13 +22,13 @@
         margin: 0;
         padding: 0;
         overflow: hidden;
-        background: #f0f0f0;
         overflow-y: auto;
+        background: #f0f0f0;
       }
       h2 {
         margin-top: 5px;
-        text-align: center;
         line-height: 24px;
+        text-align: center;
       }
       .slide-view-example {
         margin-top: 5px;
@@ -37,13 +37,13 @@
         margin: 5px 0;
       }
       .slide-view-example .slide-view-item .slide-view-cell {
+        display: flex;
+        align-items: center;
+        box-sizing: border-box;
         width: 100%;
         height: 64px;
         padding: 0 15px;
-        box-sizing: border-box;
         background: #fff;
-        display: flex;
-        align-items: center;
       }
       .slide-view-example .slide-view-item.active .slide-view-cell {
         background: #ddd;
@@ -53,9 +53,9 @@
         font-size: 12px;
       }
       .operate .item-div {
-        margin: 5px 0;
         display: flex;
         align-items: center;
+        margin: 5px 0;
         line-height: 13px;
       }
       .operate .item-div label {
@@ -78,7 +78,7 @@
       .operate .item-div input[name='rightOverallFreeSize'] {
         max-width: 58px;
       }
-      .col {
+      .operate .item-div .col {
         width: 50%;
       }
       #info {
@@ -93,6 +93,42 @@
         .operate .item-div .col {
           width: 100%;
         }
+      }
+
+      .leftAction-round .hjs-slideview__action__wrapper,
+      .rightAction-round .hjs-slideview__action__wrapper {
+        width: auto;
+        height: auto;
+        padding: 10px 0;
+        border-radius: 24px;
+      }
+      .leftAction-round .hjs-slideview__action,
+      .rightAction-round .hjs-slideview__action {
+        flex-direction: row;
+        padding: 0 10px;
+      }
+      .leftAction-round .hjs-slideview__action__text,
+      .rightAction-round .hjs-slideview__action__text {
+        width: auto;
+        text-align: left;
+      }
+      .leftAction-drawer,
+      .rightAction-drawer {
+        overflow: hidden;
+        border-radius: 9px;
+      }
+      .leftAction-drawer .hjs-slideview__action__wrapper,
+      .rightAction-drawer .hjs-slideview__action__wrapper {
+        width: auto;
+        border-radius: 3px;
+      }
+      .leftAction-drawer .hjs-slideview__action__wrapper:first-child,
+      .rightAction-drawer .hjs-slideview__action__wrapper:first-child {
+        border-radius: 9px 3px 3px 9px;
+      }
+      .leftAction-drawer .hjs-slideview__action__wrapper:last-child,
+      .rightAction-drawer .hjs-slideview__action__wrapper:last-child {
+        border-radius: 3px 9px 9px 3px;
       }
     </style>
   </head>
@@ -184,6 +220,9 @@
               <label>
                 <input type="radio" name="leftStyle" value="round" />round
               </label>
+              <label>
+                <input type="radio" name="leftStyle" value="drawer" />drawer
+              </label>
             </div>
             <div class="item-div">
               disable:
@@ -219,10 +258,6 @@
             <div class="item-div">
               overshootFreeSize:
               <input name="leftOvershootFreeSize" type="number" value="30" />
-            </div>
-            <div class="item-div">
-              overallFreeSize:
-              <input name="leftOverallFreeSize" type="number" value="60" />
             </div>
           </div>
           <div class="col">
@@ -289,6 +324,9 @@
               <label>
                 <input type="radio" name="rightStyle" value="round" />round
               </label>
+              <label>
+                <input type="radio" name="rightStyle" value="drawer" />drawer
+              </label>
             </div>
             <div class="item-div">
               disable:
@@ -324,10 +362,6 @@
             <div class="item-div">
               overshootFreeSize:
               <input name="rightOvershootFreeSize" type="number" value="30" />
-            </div>
-            <div class="item-div">
-              overallFreeSize:
-              <input name="rightOverallFreeSize" type="number" value="60" />
             </div>
           </div>
         </form>
@@ -461,7 +495,6 @@
             const overshootFreeSize = +(
               formData.get('leftOvershootFreeSize') || 0
             );
-            const overallFreeSize = +(formData.get('leftOverallFreeSize') || 0);
             const items = [];
             for (let i = number; i > 0; i--) {
               const id = ++ID;
@@ -490,18 +523,24 @@
                       }
                     : undefined,
                 collapse: collapse,
+                gap:
+                  style === 'drawer'
+                    ? [i === 3 ? 0 : 1, i === 1 ? 0 : 1]
+                    : style === 'round'
+                    ? 10
+                    : 0,
+                fixedGap: style === 'drawer',
                 data: { id, del: i === 1 && cdelete },
               });
             }
             leftActions = {
-              className: 'leftAction',
-              style,
+              className: `leftAction-${style}`,
+              style: style === 'drawer' ? 'drawer' : 'accordion',
               disable,
               threshold,
               overshoot,
               overshootEdgeSize,
               overshootFreeSize,
-              overallFreeSize,
               items,
             };
           }
@@ -523,9 +562,6 @@
             const overshootFreeSize = +(
               formData.get('rightOvershootFreeSize') || 0
             );
-            const overallFreeSize = +(
-              formData.get('rightOverallFreeSize') || 0
-            );
             const items = [];
             for (let i = number; i > 0; i--) {
               const id = ++ID;
@@ -554,18 +590,24 @@
                       }
                     : undefined,
                 collapse: collapse,
+                gap:
+                  style === 'drawer'
+                    ? [i === 3 ? 0 : 1, i === 1 ? 0 : 1]
+                    : style === 'round'
+                    ? 10
+                    : 0,
+                fixedGap: style === 'drawer',
                 data: { id, del: i === 1 && cdelete },
               });
             }
             rightActions = {
-              className: 'rightAction',
-              style,
+              className: `rightAction-${style}`,
+              style: style === 'drawer' ? 'drawer' : 'accordion',
               disable,
               threshold,
               overshoot,
               overshootEdgeSize,
               overshootFreeSize,
-              overallFreeSize,
               items,
             };
           }

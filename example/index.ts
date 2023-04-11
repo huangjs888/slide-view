@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2021-03-17 16:23:00
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-04-11 10:24:42
+ * @LastEditTime: 2023-04-11 10:38:36
  * @Description: ******
  */
 import SlideView, {
@@ -134,7 +134,7 @@ const getActions = (): {
             : style === 'round'
             ? 10
             : 0,
-        fixedGap: true,
+        fixedGap: style === 'drawer',
         data: { id, del: i === 1 && cdelete },
       });
     }
@@ -195,7 +195,7 @@ const getActions = (): {
             : style === 'round'
             ? 10
             : 0,
-        fixedGap: true,
+        fixedGap: style === 'drawer',
         data: { id, del: i === 1 && cdelete },
       });
     }
