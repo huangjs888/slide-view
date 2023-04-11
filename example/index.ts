@@ -2,12 +2,11 @@
  * @Author: Huangjs
  * @Date: 2021-03-17 16:23:00
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-03-23 10:13:16
+ * @LastEditTime: 2023-04-11 10:24:42
  * @Description: ******
  */
 import SlideView, {
   type Timing,
-  type ActionStyle,
   type IEvent,
   type IActionOption,
 } from '../src/index';
@@ -97,13 +96,12 @@ const getActions = (): {
     const text = +(formData.get('leftText') || 3);
     const confirmText = !!formData.get('leftConfirmText');
     const confirmColor = !!formData.get('leftConfirmColor');
-    const style = (formData.get('leftStyle') || 'rect') as ActionStyle;
+    const style = formData.get('leftStyle') || 'rect';
     const disable = !!formData.get('leftDisable');
     const threshold = +(formData.get('leftThreshold') || 0);
     const overshoot = !!formData.get('leftOvershoot');
     const overshootEdgeSize = +(formData.get('leftOvershootEdgeSize') || 0);
     const overshootFreeSize = +(formData.get('leftOvershootFreeSize') || 0);
-    const overallFreeSize = +(formData.get('leftOverallFreeSize') || 0);
     const items = [];
     for (let i = number; i > 0; i--) {
       const id = ++ID;
@@ -130,18 +128,24 @@ const getActions = (): {
               }
             : undefined,
         collapse: collapse,
+        gap:
+          style === 'drawer'
+            ? [i === 3 ? 0 : 1, i === 1 ? 0 : 1]
+            : style === 'round'
+            ? 10
+            : 0,
+        fixedGap: true,
         data: { id, del: i === 1 && cdelete },
       });
     }
     leftActions = {
-      className: 'leftAction',
-      style,
+      className: `leftAction-${style}`,
+      style: style === 'drawer' ? 'drawer' : 'accordion',
       disable,
       threshold,
       overshoot,
       overshootEdgeSize,
       overshootFreeSize,
-      overallFreeSize,
       items,
     };
   }
@@ -153,13 +157,12 @@ const getActions = (): {
     const text = +(formData.get('rightText') || 3);
     const confirmText = !!formData.get('rightConfirmText');
     const confirmColor = !!formData.get('rightConfirmColor');
-    const style = (formData.get('rightStyle') || 'rect') as ActionStyle;
+    const style = formData.get('rightStyle') || 'rect';
     const disable = !!formData.get('rightDisable');
     const threshold = +(formData.get('rightThreshold') || 0);
     const overshoot = !!formData.get('rightOvershoot');
     const overshootEdgeSize = +(formData.get('rightOvershootEdgeSize') || 0);
     const overshootFreeSize = +(formData.get('rightOvershootFreeSize') || 0);
-    const overallFreeSize = +(formData.get('rightOverallFreeSize') || 0);
     const items = [];
     for (let i = number; i > 0; i--) {
       const id = ++ID;
@@ -186,18 +189,24 @@ const getActions = (): {
               }
             : undefined,
         collapse: collapse,
+        gap:
+          style === 'drawer'
+            ? [i === 3 ? 0 : 1, i === 1 ? 0 : 1]
+            : style === 'round'
+            ? 10
+            : 0,
+        fixedGap: true,
         data: { id, del: i === 1 && cdelete },
       });
     }
     rightActions = {
-      className: 'rightAction',
-      style,
+      className: `rightAction-${style}`,
+      style: style === 'drawer' ? 'drawer' : 'accordion',
       disable,
       threshold,
       overshoot,
       overshootEdgeSize,
       overshootFreeSize,
-      overallFreeSize,
       items,
     };
   }

@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-03-22 15:51:28
+ * @LastEditTime: 2023-04-10 10:33:06
  * @Description: ******
  */
 
@@ -44,12 +44,18 @@ export function getDirection([x0, y0]: number[], [x1, y1]: number[]) {
     : 'Down';
 }
 
-export function rebounceSize(value: number, friction: number) {
-  const val = value || 1;
-  return (
-    (Math.pow(Math.abs(val), Math.min(1, Math.max(0, friction))) * val) /
-    Math.abs(val)
-  );
+export function rebounceSize(
+  value: number,
+  friction: number,
+  inverse: boolean = false,
+) {
+  if (friction <= 0) {
+    return 1;
+  }
+  const v = value || 1;
+  let f = Math.min(1, friction);
+  f = inverse ? 1 / f : f;
+  return (Math.pow(Math.abs(v), f) * v) / Math.abs(v);
 }
 
 export function addClass(ele: HTMLElement, className: string) {

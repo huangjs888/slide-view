@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-03-17 14:16:20
+ * @LastEditTime: 2023-04-07 13:33:36
  * @Description: ******
  */
 import EventTarget, { type IBaseEvent } from './event';
