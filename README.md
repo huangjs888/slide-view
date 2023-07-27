@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2021-05-10 15:55:29
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-03-23 11:26:32
+ * @LastEditTime: 2023-04-12 11:00:08
  * @Description: ******
 -->
 ## slide-view
@@ -36,7 +36,7 @@ H5列表左右滑动操作
     timing: 'ease',
     rightActions: {
       className: 'leftAction',
-      style: 'rect',
+      style:'accordion',
       disable: false,
       threshold: 40,
       overshoot: true,

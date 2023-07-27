@@ -2,16 +2,12 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-03-22 17:17:34
+ * @LastEditTime: 2023-07-27 14:05:49
  * @Description: ******
  */
-import Gesture, { type GestureEvent } from './gesture';
+import Gesture, { type GEvent } from '@huangjs888/gesture';
 
-function started(
-  element: HTMLElement,
-  event: GestureEvent,
-  start: AgentHandler,
-) {
+function started(element: HTMLElement, event: GEvent, start: AgentHandler) {
   const e = event.sourceEvent as TouchEvent;
   // 表示是已经有一个手指放上去了
   if (element.getAttribute('data-touch-identifier')) {
@@ -31,7 +27,7 @@ function started(
   });
 }
 
-function moved(element: HTMLElement, event: GestureEvent, move: AgentHandler) {
+function moved(element: HTMLElement, event: GEvent, move: AgentHandler) {
   const e = event.sourceEvent as TouchEvent;
   let changedTouch = null;
   for (let i = 0; i < e.changedTouches.length; i++) {
@@ -57,7 +53,7 @@ function moved(element: HTMLElement, event: GestureEvent, move: AgentHandler) {
   });
 }
 
-function ended(element: HTMLElement, event: GestureEvent, end: AgentHandler) {
+function ended(element: HTMLElement, event: GEvent, end: AgentHandler) {
   const e = event.sourceEvent as TouchEvent;
   let changedTouch = null;
   for (let i = 0; i < e.changedTouches.length; i++) {
@@ -85,14 +81,10 @@ function ended(element: HTMLElement, event: GestureEvent, end: AgentHandler) {
   });
 }
 
-function touched(
-  element: HTMLElement,
-  event: GestureEvent,
-  touch: AgentHandler,
-) {
+function touched(element: HTMLElement, event: GEvent, touch: AgentHandler) {
   touch({
     type: 'touch',
-    point: event.point[0],
+    point: event.point,
     currentTarget: element,
     sourceEvent: event,
   });
@@ -138,7 +130,7 @@ function mousedowned(
     element.setAttribute('data-move', 'true');
     const dx = e.clientX - x0;
     const dy = e.clientY - y0;
-    if (dx * dx + dy * dy >= 3 * 3) {
+    if (dx * dx + dy * dy > 3 * 3) {
       move &&
         move({
           type: 'mouse',
@@ -186,7 +178,7 @@ export type AgentEvent = {
   type: 'mouse' | 'touch';
   point: number[];
   currentTarget: HTMLElement;
-  sourceEvent: GestureEvent | MouseEvent;
+  sourceEvent: GEvent | MouseEvent;
 };
 
 type AgentHandler = (e: AgentEvent) => void;
@@ -214,24 +206,22 @@ export default function agent(ele: HTMLElement, handler: AgentEventHandler) {
   const gesture = new Gesture(ele);
   if (gesture.done()) {
     if (start) {
-      gesture.on('touchStart', (e: GestureEvent) => started(ele, e, start));
+      gesture.on('touchStart', (e: GEvent) => started(ele, e, start));
     }
     if (move) {
-      gesture.on('touchMove', (e: GestureEvent) => moved(ele, e, move));
+      gesture.on('touchMove', (e: GEvent) => moved(ele, e, move));
     }
     if (end) {
-      gesture.on('touchEnd', (e: GestureEvent) => ended(ele, e, end));
+      gesture.on('touchEnd', (e: GEvent) => ended(ele, e, end));
     }
     if (press) {
-      gesture.on('tap', (e: GestureEvent) => touched(ele, e, press));
+      gesture.on('tap', (e: GEvent) => touched(ele, e, press));
     }
     if (longPress) {
-      gesture.on('longTap', (e: GestureEvent) => touched(ele, e, longPress));
+      gesture.on('longTap', (e: GEvent) => touched(ele, e, longPress));
     }
     if (doublePress) {
-      gesture.on('doubleTap', (e: GestureEvent) =>
-        touched(ele, e, doublePress),
-      );
+      gesture.on('doubleTap', (e: GEvent) => touched(ele, e, doublePress));
     }
     destory = () => {
       gesture.destory();

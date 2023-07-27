@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2021-10-21 16:11:29
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-03-15 13:51:00
+ * @LastEditTime: 2023-04-17 16:48:54
  * @Description: ******
  */
 
@@ -40,6 +40,30 @@ module.exports = (env, argv) => {
     module: {
       rules: [
         {
+          test: /\.(c|le)ss$/,
+          use: [
+            {
+              loader: devMode ? 'style-loader' : MiniCssExtractPlugin.loader,
+            },
+            {
+              loader: 'css-loader',
+              options: {
+                url: true, // 对css里image路径使用下面的loader处理
+              },
+            },
+            'less-loader',
+          ],
+        },
+        // webpack5 配置图片loader两种选一个
+        // https://webpack.docschina.org/guides/asset-modules
+        /* {
+          test: /\.(jpe?g|png|gif|bmp|ico|svg|webp)$/,
+          type: 'asset/resource',
+          generator: {
+            filename: '[name].[hash:8].[ext]',
+          },
+        }, */
+        {
           test: /\.(jpe?g|png|gif|bmp|ico|svg|webp)$/,
           use: {
             loader: 'file-loader',
@@ -50,16 +74,7 @@ module.exports = (env, argv) => {
               limit: 4 * 1024, // url-loader跟file-loader配置差不多，limit是url-loader的参数，当图片小于 limit 时，图片会被转为 base64
             },
           },
-        },
-        {
-          test: /\.(c|le)ss$/,
-          use: [
-            {
-              loader: devMode ? 'style-loader' : MiniCssExtractPlugin.loader,
-            },
-            'css-loader',
-            'less-loader',
-          ],
+          type: 'javascript/auto',
         },
         {
           test: /\.(j|t)s$/,

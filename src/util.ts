@@ -2,61 +2,9 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-04-10 10:33:06
+ * @LastEditTime: 2023-07-27 13:50:19
  * @Description: ******
  */
-
-export function isTouchable(ele: HTMLElement) {
-  if (!ele) {
-    return false;
-  }
-  return navigator.maxTouchPoints || 'ontouchstart' in ele;
-}
-
-export function getDistance([x0, y0]: number[], [x1, y1]: number[]) {
-  return Math.sqrt(Math.pow(x1 - x0, 2) + Math.pow(y1 - y0, 2));
-}
-
-export function getVelocity(deltaTime: number, distance: number) {
-  return distance / deltaTime || 0;
-}
-
-export function getAngle([x0, y0]: number[], [x1, y1]: number[]) {
-  return (Math.atan2(y1 - y0, x1 - x0) * 180) / Math.PI;
-}
-
-export function getCenter([x0, y0]: number[], [x1, y1]: number[]) {
-  return [(x0 + x1) / 2, (y0 + y1) / 2];
-}
-
-export function getDirection([x0, y0]: number[], [x1, y1]: number[]) {
-  const x = x0 - x1;
-  const y = y0 - y1;
-  if (x === y) {
-    return 'None';
-  }
-  return Math.abs(x) >= Math.abs(y)
-    ? x0 - x1 > 0
-      ? 'Left'
-      : 'Right'
-    : y0 - y1 > 0
-    ? 'Up'
-    : 'Down';
-}
-
-export function rebounceSize(
-  value: number,
-  friction: number,
-  inverse: boolean = false,
-) {
-  if (friction <= 0) {
-    return 1;
-  }
-  const v = value || 1;
-  let f = Math.min(1, friction);
-  f = inverse ? 1 / f : f;
-  return (Math.pow(Math.abs(v), f) * v) / Math.abs(v);
-}
 
 export function addClass(ele: HTMLElement, className: string) {
   if (ele && typeof className === 'string') {
@@ -64,30 +12,10 @@ export function addClass(ele: HTMLElement, className: string) {
   }
   return ele;
 }
+
 export function removeClass(ele: HTMLElement, className: string) {
   if (ele && typeof className === 'string') {
     className.split(' ').forEach((c) => c && ele.classList.remove(c));
-  }
-  return ele;
-}
-
-export function setStyle(
-  ele: HTMLElement,
-  css: { [key: string]: string | number | undefined },
-) {
-  if (ele) {
-    Object.keys(css).forEach((k: string) => {
-      if (typeof css[k] === 'undefined') {
-        return;
-      }
-      const key =
-        k.indexOf('-') !== -1 ? k : k.replace(/([A-Z])/g, '-$1').toLowerCase();
-      const val =
-        typeof css[k] === 'number' && key !== 'z-index' && key !== 'opacity'
-          ? `${css[k]}px`
-          : String(css[k]);
-      ele.style.setProperty(key, val);
-    });
   }
   return ele;
 }
@@ -125,7 +53,7 @@ export function getIconType(url: string) {
 }
 
 const styleId = 'hjs-slide-view-style';
-export function styleInject(cssText: string) {
+export function cssInject(cssText: string) {
   let style = document.querySelector(`#${styleId}`);
   if (!style) {
     style = document.createElement('style');
@@ -135,4 +63,38 @@ export function styleInject(cssText: string) {
       style,
     );
   }
+}
+
+const autoPxReg =
+  /^(?:-border(?:-top|-right|-bottom|-left)?(?:-width|)|(?:-margin|-padding)?(?:-top|-right|-bottom|-left)?|(?:-min|-max)?(?:-width|-height))$/;
+export function setStyle(
+  ele: HTMLElement,
+  css: { [key: string]: string | number | undefined },
+) {
+  if (ele) {
+    Object.keys(css).forEach((k: string) => {
+      if (typeof css[k] === 'undefined') {
+        return;
+      }
+      const key = k.replace(/([A-Z])/g, '-$1').toLowerCase();
+      const val =
+        typeof css[k] === 'number' &&
+        /^[a-z]/.test(key) &&
+        autoPxReg.test(`-${key}`)
+          ? `${css[k]}px`
+          : String(css[k]);
+      ele.style.setProperty(key, val);
+    });
+  }
+  return ele;
+}
+
+export function findTarget(event: any, condition: (t: HTMLElement) => boolean) {
+  let target = (
+    event instanceof MouseEvent ? event.target : event.sourceEvent.target
+  ) as HTMLElement;
+  while (condition(target)) {
+    target = target.parentNode as HTMLElement;
+  }
+  return target;
 }
