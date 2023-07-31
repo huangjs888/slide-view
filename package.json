@@ -46,7 +46,7 @@
   "homepage": "https://github.com/huangjs888/slide-view#readme",
   "dependencies": {
     "@huangjs888/damping": "^2.0.1",
-    "@huangjs888/gesture": "^1.0.3"
+    "@huangjs888/gesture": "^1.1.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.20.7",

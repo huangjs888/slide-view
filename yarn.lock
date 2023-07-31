@@ -1004,10 +1004,10 @@
   resolved "https://registry.npmmirror.com/@huangjs888/damping/-/damping-2.0.1.tgz#2b46b88472d6804d4e289545efbb8186b0dfa7b7"
   integrity sha512-kHaYfvkqv1WcsA7W91wv6SzXs73CaaKcZbFyi61EwhAztVbltOfcpHbztFBJlpRp+laHOE/l9sMvQXTtBfpTUw==
 
-"@huangjs888/gesture@^1.0.3":
-  version "1.0.3"
-  resolved "https://registry.npmmirror.com/@huangjs888/gesture/-/gesture-1.0.3.tgz#8c1602ce81c9ed1355fe6a5fef12c95822249635"
-  integrity sha512-I668WrFqtJ4vH/9fGHgog1gWxBRF5x1Pt24VcVmRE/Erc4moO9+Sc0mBEShM175PEMMvyohz6qIQeK4rr28suA==
+"@huangjs888/gesture@^1.1.1":
+  version "1.1.1"
+  resolved "https://registry.npmmirror.com/@huangjs888/gesture/-/gesture-1.1.1.tgz#562e3c720c1caa9a825cff90ef753fed16b6a3aa"
+  integrity sha512-J0NbNp8Fb33XTvKId++5fjKHUw9PWOqd8VNMrs1JGpcArCmt+SpoKsJLkM3VHpjjplS7qcbSAZ+9vtsY0phQPQ==
 
 "@humanwhocodes/config-array@^0.11.8":
   version "0.11.8"
