@@ -1,6 +1,6 @@
 {
   "name": "@huangjs888/slide-view",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Left-slide operations on lists, e.g. delete",
   "main": "lib/index.js",
   "unpkg": "dist/silde-view.min.js",
