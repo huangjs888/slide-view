@@ -2,22 +2,30 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-07-27 13:50:19
+ * @LastEditTime: 2023-08-03 17:24:27
  * @Description: ******
  */
 
-export function addClass(ele: HTMLElement, className: string) {
-  if (ele && typeof className === 'string') {
-    className.split(' ').forEach((c) => c && ele.classList.add(c));
+export function getIconType(url: string) {
+  if (url) {
+    if (
+      url.match(/\.(jpe?g|png|gif|bmp|ico|svg|webp)$/) ||
+      url.match(/^(data:image\/)/)
+    ) {
+      return 'img';
+    } else if (url.match(/^<svg(.+)?>.+<\/svg>$/)) {
+      return 'span';
+    }
   }
-  return ele;
+  return 'i';
 }
 
-export function removeClass(ele: HTMLElement, className: string) {
-  if (ele && typeof className === 'string') {
-    className.split(' ').forEach((c) => c && ele.classList.remove(c));
+export function findTarget(event: any, condition: (t: HTMLElement) => boolean) {
+  let target = event.target;
+  while (condition(target)) {
+    target = target.parentNode;
   }
-  return ele;
+  return target;
 }
 
 export const getMarginSize = function getMarginSize(element: HTMLElement) {
@@ -38,18 +46,18 @@ export const getMarginSize = function getMarginSize(element: HTMLElement) {
   return val;
 };
 
-export function getIconType(url: string) {
-  if (url) {
-    if (
-      url.match(/\.(jpe?g|png|gif|bmp|ico|svg|webp)$/) ||
-      url.match(/^(data:image\/)/)
-    ) {
-      return 'img';
-    } else if (url.match(/^<svg(.+)?>.+<\/svg>$/)) {
-      return 'span';
-    }
+export function addClass(ele: HTMLElement, className: string) {
+  if (ele && typeof className === 'string') {
+    className.split(' ').forEach((c) => c && ele.classList.add(c));
   }
-  return 'i';
+  return ele;
+}
+
+export function removeClass(ele: HTMLElement, className: string) {
+  if (ele && typeof className === 'string') {
+    className.split(' ').forEach((c) => c && ele.classList.remove(c));
+  }
+  return ele;
 }
 
 const styleId = 'hjs-slide-view-style';
@@ -72,29 +80,26 @@ export function setStyle(
   css: { [key: string]: string | number | undefined },
 ) {
   if (ele) {
+    let cssText = '';
     Object.keys(css).forEach((k: string) => {
-      if (typeof css[k] === 'undefined') {
-        return;
-      }
       const key = k.replace(/([A-Z])/g, '-$1').toLowerCase();
-      const val =
-        typeof css[k] === 'number' &&
-        /^[a-z]/.test(key) &&
-        autoPxReg.test(`-${key}`)
-          ? `${css[k]}px`
-          : String(css[k]);
-      ele.style.setProperty(key, val);
+      if (css[k] !== 0 && !css[k]) {
+        // 删除
+        ele.style.setProperty(key, '');
+      } else {
+        const suffix =
+          typeof css[k] === 'number' &&
+          /^[a-z]/.test(key) &&
+          autoPxReg.test(`-${key}`)
+            ? 'px'
+            : '';
+        const val = `${css[k]}${suffix}`;
+        cssText += `${key}:${val};`;
+      }
     });
+    if (cssText) {
+      ele.style.cssText += cssText;
+    }
   }
   return ele;
-}
-
-export function findTarget(event: any, condition: (t: HTMLElement) => boolean) {
-  let target = (
-    event instanceof MouseEvent ? event.target : event.sourceEvent.target
-  ) as HTMLElement;
-  while (condition(target)) {
-    target = target.parentNode as HTMLElement;
-  }
-  return target;
 }
