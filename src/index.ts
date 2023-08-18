@@ -2,10 +2,11 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-04 15:48:37
+ * @LastEditTime: 2023-08-18 16:00:29
  * @Description: ******
  */
-import Gesture, { EventTarget, GEvent } from '@huangjs888/gesture';
+import { EventTarget, type GEvent } from '@huangjs888/gesture';
+import type Gesture from '@huangjs888/gesture';
 import bindGesture, { onOnceTransitionEnd } from './events';
 import generateEl from './dom';
 import { transform } from './transform';
@@ -52,10 +53,7 @@ class SlideView extends EventTarget<IType, IEvent> {
       leftActions,
       rightActions,
     } = options;
-    const [element, contentEl, leftEl, rightEl] = generateEl(
-      container,
-      className,
-    );
+    const [element, contentEl, leftEl, rightEl] = generateEl(container, className);
     this._gesture = bindGesture.apply(this, [element]);
     this.element = element;
     this.contentEl = contentEl;
@@ -89,18 +87,16 @@ class SlideView extends EventTarget<IType, IEvent> {
       this.contentEl.innerHTML = content;
       return;
     }
-    try {
-      let tempChild;
-      if (typeof content === 'string') {
-        tempChild = document.querySelector(content);
-      } else {
-        tempChild = content;
-      }
-      if (tempChild) {
-        this.contentEl.innerHTML = '';
-        this.contentEl.appendChild(tempChild);
-      }
-    } catch (e) {}
+    let tempChild;
+    if (typeof content === 'string') {
+      tempChild = document.querySelector(content);
+    } else {
+      tempChild = content;
+    }
+    if (tempChild) {
+      this.contentEl.innerHTML = '';
+      this.contentEl.appendChild(tempChild);
+    }
   }
   setFriction(friction: number = 0.5) {
     if (this._destory) {
@@ -144,16 +140,10 @@ class SlideView extends EventTarget<IType, IEvent> {
     if (typeof disable === 'boolean') {
       this.hide().then(() => {
         // direction传其它，则属于无效设置
-        if (
-          this.leftActions &&
-          (direction === 'both' || direction === 'left')
-        ) {
+        if (this.leftActions && (direction === 'both' || direction === 'left')) {
           this.leftActions.disable = disable;
         }
-        if (
-          this.rightActions &&
-          (direction === 'both' || direction === 'right')
-        ) {
+        if (this.rightActions && (direction === 'both' || direction === 'right')) {
           this.rightActions.disable = disable;
         }
       });
@@ -169,10 +159,7 @@ class SlideView extends EventTarget<IType, IEvent> {
       if (this.leftActions && (direction === 'both' || direction === 'left')) {
         this.leftActions.overshoot = overshoot;
       }
-      if (
-        this.rightActions &&
-        (direction === 'both' || direction === 'right')
-      ) {
+      if (this.rightActions && (direction === 'both' || direction === 'right')) {
         this.rightActions.overshoot = overshoot;
       }
     }
@@ -186,19 +173,10 @@ class SlideView extends EventTarget<IType, IEvent> {
       const _threshold = Math.max(0, threshold);
       // direction传其它，则属于无效设置
       if (this.leftActions && (direction === 'both' || direction === 'left')) {
-        this.leftActions.threshold = Math.min(
-          _threshold,
-          this.leftActions.width,
-        );
+        this.leftActions.threshold = Math.min(_threshold, this.leftActions.width);
       }
-      if (
-        this.rightActions &&
-        (direction === 'both' || direction === 'right')
-      ) {
-        this.rightActions.threshold = Math.min(
-          _threshold,
-          this.rightActions.width,
-        );
+      if (this.rightActions && (direction === 'both' || direction === 'right')) {
+        this.rightActions.threshold = Math.min(_threshold, this.rightActions.width);
       }
     }
   }
@@ -234,31 +212,19 @@ class SlideView extends EventTarget<IType, IEvent> {
         let tGap = 0;
         let newItems = items.map((item, index) => {
           const { gap = 0, fixedGap = false, text, icon } = item;
-          const element = addClass(
-            document.createElement('div'),
-            'hjs-slideview__action',
-          );
+          const element = addClass(document.createElement('div'), 'hjs-slideview__action');
           element.setAttribute('data-index', String(index));
           if (icon) {
             element.appendChild(
-              addClass(
-                document.createElement(getIconType(icon)),
-                'hjs-slideview__action__icon',
-              ),
+              addClass(document.createElement(getIconType(icon)), 'hjs-slideview__action__icon'),
             );
           }
           if (text) {
             element.appendChild(
-              addClass(
-                document.createElement('span'),
-                'hjs-slideview__action__text',
-              ),
+              addClass(document.createElement('span'), 'hjs-slideview__action__text'),
             );
           }
-          const wrapper = addClass(
-            document.createElement('div'),
-            'hjs-slideview__action__wrapper',
-          );
+          const wrapper = addClass(document.createElement('div'), 'hjs-slideview__action__wrapper');
           wrapper.appendChild(element);
           tElement.appendChild(wrapper);
           const tItem: MergeActionItem = {
@@ -312,8 +278,7 @@ class SlideView extends EventTarget<IType, IEvent> {
         this.show(_direction);
       });
     };
-    const shown =
-      this._translate > 0 ? 'left' : this._translate < 0 ? 'right' : 'none';
+    const shown = this._translate > 0 ? 'left' : this._translate < 0 ? 'right' : 'none';
     if (direction === 'both') {
       if (shown !== 'none') {
         _setActionsAfterCollapse(shown);
@@ -340,8 +305,7 @@ class SlideView extends EventTarget<IType, IEvent> {
     if (
       this._destory ||
       !contentEl ||
-      ((!leftActions || leftActions.disable) &&
-        (!rightActions || rightActions.disable))
+      ((!leftActions || leftActions.disable) && (!rightActions || rightActions.disable))
     ) {
       return Promise.resolve();
     }
@@ -366,9 +330,7 @@ class SlideView extends EventTarget<IType, IEvent> {
         transform.apply(this, [translate]);
         if (this._overshooting) {
           this._overshooting = false;
-          overshootChange.apply(this, [
-            this._translate > 0 ? leftActions : rightActions,
-          ]);
+          overshootChange.apply(this, [this._translate > 0 ? leftActions : rightActions]);
         }
         confirmCancel.apply(this, []);
         if (!rebSize) {
@@ -405,8 +367,7 @@ class SlideView extends EventTarget<IType, IEvent> {
       this._destory ||
       this._translate === 0 ||
       !contentEl ||
-      ((!leftActions || leftActions.disable) &&
-        (!rightActions || rightActions.disable))
+      ((!leftActions || leftActions.disable) && (!rightActions || rightActions.disable))
     ) {
       return Promise.resolve();
     }
@@ -418,9 +379,7 @@ class SlideView extends EventTarget<IType, IEvent> {
         resolve();
         if (this._overshooting) {
           this._overshooting = false;
-          overshootChange.apply(this, [
-            this._translate > 0 ? leftActions : rightActions,
-          ]);
+          overshootChange.apply(this, [this._translate > 0 ? leftActions : rightActions]);
         }
         confirmCancel.apply(this, []);
         if (this._direction !== 'none') {

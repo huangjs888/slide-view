@@ -8,10 +8,7 @@
 
 export function getIconType(url: string) {
   if (url) {
-    if (
-      url.match(/\.(jpe?g|png|gif|bmp|ico|svg|webp)$/) ||
-      url.match(/^(data:image\/)/)
-    ) {
+    if (url.match(/\.(jpe?g|png|gif|bmp|ico|svg|webp)$/) || url.match(/^(data:image\/)/)) {
       return 'img';
     } else if (url.match(/^<svg(.+)?>.+<\/svg>$/)) {
       return 'span';
@@ -35,9 +32,7 @@ export const getMarginSize = function getMarginSize(element: HTMLElement) {
     if (computed) {
       val = parseFloat(computed.marginLeft) + parseFloat(computed.marginRight);
     } else {
-      val =
-        parseFloat(element.style.marginLeft) +
-        parseFloat(element.style.marginRight);
+      val = parseFloat(element.style.marginLeft) + parseFloat(element.style.marginRight);
     }
     if (Number.isNaN(val)) {
       val = 0;
@@ -67,18 +62,13 @@ export function cssInject(cssText: string) {
     style = document.createElement('style');
     style.id = styleId;
     style.appendChild(document.createTextNode(cssText));
-    (document.head || document.getElementsByTagName('head')[0]).appendChild(
-      style,
-    );
+    (document.head || document.getElementsByTagName('head')[0]).appendChild(style);
   }
 }
 
 const autoPxReg =
   /^(?:-border(?:-top|-right|-bottom|-left)?(?:-width|)|(?:-margin|-padding)?(?:-top|-right|-bottom|-left)?|(?:-min|-max)?(?:-width|-height))$/;
-export function setStyle(
-  ele: HTMLElement,
-  css: { [key: string]: string | number | undefined },
-) {
+export function setStyle(ele: HTMLElement, css: { [key: string]: string | number | undefined }) {
   if (ele) {
     let cssText = '';
     Object.keys(css).forEach((k: string) => {
@@ -88,11 +78,7 @@ export function setStyle(
         ele.style.setProperty(key, '');
       } else {
         const suffix =
-          typeof css[k] === 'number' &&
-          /^[a-z]/.test(key) &&
-          autoPxReg.test(`-${key}`)
-            ? 'px'
-            : '';
+          typeof css[k] === 'number' && /^[a-z]/.test(key) && autoPxReg.test(`-${key}`) ? 'px' : '';
         const val = `${css[k]}${suffix}`;
         cssText += `${key}:${val};`;
       }

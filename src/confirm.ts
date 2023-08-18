@@ -6,13 +6,11 @@
  * @Description: ******
  */
 
-import SlideView, { type MergeActionItem } from './index';
+import type SlideView from './index';
+import { type MergeActionItem } from './index';
 import { setStyle, addClass, removeClass, getIconType } from './util';
 
-export const confirmStyle = function (
-  item: MergeActionItem,
-  isConfirm: boolean = false,
-) {
+export const confirmStyle = function (item: MergeActionItem, isConfirm: boolean = false) {
   const {
     wrapper,
     element,
@@ -35,9 +33,7 @@ export const confirmStyle = function (
   addClass(
     removeClass(
       element,
-      isConfirm
-        ? rest.className || ''
-        : confirm.className || rest.className || '',
+      isConfirm ? rest.className || '' : confirm.className || rest.className || '',
     ),
     className || '',
   );
@@ -64,11 +60,7 @@ export const confirmCancel = function (this: SlideView) {
     // 因为hide的时候会进行变换，所以不需要再cTransform
     const { index, direction } = this._confirming;
     const actions =
-      direction === 'left'
-        ? this.leftActions
-        : direction === 'right'
-        ? this.rightActions
-        : null;
+      direction === 'left' ? this.leftActions : direction === 'right' ? this.rightActions : null;
     if (actions && !actions.disable) {
       const item = actions.items[index];
       setStyle(item.element, {

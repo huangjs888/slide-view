@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2021-10-21 16:11:29
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-04-17 16:48:54
+ * @LastEditTime: 2023-08-18 16:53:23
  * @Description: ******
  */
 
@@ -56,14 +56,14 @@ module.exports = (env, argv) => {
         },
         // webpack5 配置图片loader两种选一个
         // https://webpack.docschina.org/guides/asset-modules
-        /* {
+        {
           test: /\.(jpe?g|png|gif|bmp|ico|svg|webp)$/,
           type: 'asset/resource',
           generator: {
             filename: '[name].[hash:8].[ext]',
           },
-        }, */
-        {
+        },
+        /* {
           test: /\.(jpe?g|png|gif|bmp|ico|svg|webp)$/,
           use: {
             loader: 'file-loader',
@@ -75,7 +75,7 @@ module.exports = (env, argv) => {
             },
           },
           type: 'javascript/auto',
-        },
+        }, */
         {
           test: /\.(j|t)s$/,
           exclude: /node_modules/,

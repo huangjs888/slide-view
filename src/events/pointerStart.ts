@@ -8,7 +8,7 @@
 
 import { type GEvent } from '@huangjs888/gesture';
 import { revokeDamping } from '@huangjs888/damping';
-import SlideView from '../index';
+import type SlideView from '../index';
 
 export default function pointerStart(this: SlideView, e: GEvent) {
   const { pointers, currentTarget } = e;
@@ -21,10 +21,7 @@ export default function pointerStart(this: SlideView, e: GEvent) {
   currentTarget.setAttribute('data-identifier', `${pointer.identifier}`);
   const point = pointer.current;
   const { leftActions, rightActions, friction } = this;
-  if (
-    (!leftActions || leftActions.disable) &&
-    (!rightActions || rightActions.disable)
-  ) {
+  if ((!leftActions || leftActions.disable) && (!rightActions || rightActions.disable)) {
     return;
   }
   this._isMoving = true;
@@ -35,22 +32,14 @@ export default function pointerStart(this: SlideView, e: GEvent) {
   // 初始点
   this._startPoint = point;
   // 计算初始taranslate
-  const actions =
-    this._translate > 0
-      ? leftActions
-      : this._translate < 0
-      ? rightActions
-      : null;
+  const actions = this._translate > 0 ? leftActions : this._translate < 0 ? rightActions : null;
   let startTranslate = 0;
   if (actions && !actions.disable) {
     const { overshoot, overshootFreeSize, width: tWidth } = actions;
     // 弹性尺寸临界点
     const criticalTranslate =
       ((overshoot
-        ? Math.min(
-            this._width,
-            Math.max(this._width - overshootFreeSize, tWidth),
-          )
+        ? Math.min(this._width, Math.max(this._width - overshootFreeSize, tWidth))
         : tWidth) *
         this._translate) /
       Math.abs(this._translate);

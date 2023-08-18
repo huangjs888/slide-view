@@ -8,7 +8,7 @@
 
 import { type GEvent } from '@huangjs888/gesture';
 import { performDamping } from '@huangjs888/damping';
-import SlideView from '../index';
+import type SlideView from '../index';
 import { transform } from '../transform';
 import { overshootChange } from '../overshoot';
 import { confirmStyle, confirmCancel } from '../confirm';
@@ -20,10 +20,7 @@ export default function pointerMove(this: SlideView, e: GEvent) {
   for (let i = 0; i < pointers.length; i++) {
     const p = pointers[i];
     // 当前这个是主手指，并且这个手指在变化（移动）
-    if (
-      p.changed &&
-      `${p.identifier}` === currentTarget.getAttribute('data-identifier')
-    ) {
+    if (p.changed && `${p.identifier}` === currentTarget.getAttribute('data-identifier')) {
       pointer = p;
       break;
     }
@@ -37,8 +34,7 @@ export default function pointerMove(this: SlideView, e: GEvent) {
   if (
     !this._isMoving ||
     !this._startPoint ||
-    ((!leftActions || leftActions.disable) &&
-      (!rightActions || rightActions.disable))
+    ((!leftActions || leftActions.disable) && (!rightActions || rightActions.disable))
   ) {
     return;
   }
@@ -59,26 +55,14 @@ export default function pointerMove(this: SlideView, e: GEvent) {
   let translate = 0;
   let duration = 0;
   let currentTranslate = this._startTranslate + currentX;
-  const actions =
-    currentTranslate > 0
-      ? leftActions
-      : currentTranslate < 0
-      ? rightActions
-      : null;
+  const actions = currentTranslate > 0 ? leftActions : currentTranslate < 0 ? rightActions : null;
   if (actions && !actions.disable) {
-    const {
-      overshoot,
-      overshootEdgeSize,
-      overshootFreeSize,
-      width: tWidth,
-    } = actions;
+    const { overshoot, overshootEdgeSize, overshootFreeSize, width: tWidth } = actions;
     const factor = currentTranslate / Math.abs(currentTranslate);
     const oaSize = factor * tWidth;
     const otSize =
-      factor *
-      Math.min(this._width, Math.max(this._width - overshootFreeSize, tWidth));
-    const oeSize =
-      factor * Math.min(this._width * 0.5, Math.max(0, overshootEdgeSize));
+      factor * Math.min(this._width, Math.max(this._width - overshootFreeSize, tWidth));
+    const oeSize = factor * Math.min(this._width * 0.5, Math.max(0, overshootEdgeSize));
     // 可以overshoot的情况处理
     if (overshoot) {
       if (Math.abs(currentTranslate) < Math.abs(otSize)) {
@@ -86,8 +70,7 @@ export default function pointerMove(this: SlideView, e: GEvent) {
         let deltaSize = 0;
         let moveEdge = false;
         const currentOffset = currentPoint[0] - this._offset;
-        const startOffset =
-          this._startPoint[0] - this._offset - this._startOffset;
+        const startOffset = this._startPoint[0] - this._offset - this._startOffset;
         const maxOffset = this._width * 0.5;
         if (currentTranslate < 0) {
           deltaSize = currentOffset - Math.abs(oeSize);
@@ -124,10 +107,7 @@ export default function pointerMove(this: SlideView, e: GEvent) {
           performDamping(currentTranslate - otSize, {
             expo: friction,
           }) + otSize;
-        duration = Math.max(
-          0,
-          this.duration - (timestamp - this._timestamp) / 1000,
-        );
+        duration = Math.max(0, this.duration - (timestamp - this._timestamp) / 1000);
       } else {
         if (this._overshooting) {
           this._timestamp = timestamp;
@@ -141,10 +121,7 @@ export default function pointerMove(this: SlideView, e: GEvent) {
           }
         }
         translate = currentTranslate;
-        duration = Math.max(
-          0,
-          this.duration / 2 - (timestamp - this._timestamp) / 1000,
-        );
+        duration = Math.max(0, this.duration / 2 - (timestamp - this._timestamp) / 1000);
       }
     } else {
       // 不能overshoot的情况，按钮显示超出总宽度，则进行弹性尺寸

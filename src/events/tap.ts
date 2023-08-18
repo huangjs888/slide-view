@@ -8,7 +8,7 @@
 
 import { type GEvent } from '@huangjs888/gesture';
 import buttonPress from './buttonPress';
-import SlideView from '../index';
+import type SlideView from '../index';
 import { findTarget } from '../util';
 
 export default function tap(this: SlideView, e: GEvent) {
@@ -16,8 +16,7 @@ export default function tap(this: SlideView, e: GEvent) {
   const { sourceEvent, currentTarget } = e;
   const target = findTarget(
     sourceEvent,
-    (t) =>
-      t !== currentTarget && t !== contentEl && t !== leftEl && t !== rightEl,
+    (t) => t !== currentTarget && t !== contentEl && t !== leftEl && t !== rightEl,
   );
   // 触发内容元素按压事件
   if (contentEl && target === contentEl) {

@@ -8,28 +8,19 @@
 
 import { type GEvent } from '@huangjs888/gesture';
 import { onOnceTransitionEnd } from './index';
-import SlideView, {
-  type Direction,
-  type MergeAction,
-  type Confirm,
-  type IType,
-} from '../index';
+import { type Direction, type MergeAction, type Confirm, type IType } from '../index';
+import type SlideView from '../index';
 import { transform, cTransform } from '../transform';
 import { overshootChange } from '../overshoot';
 import { confirmStyle } from '../confirm';
 import { setStyle, findTarget } from '../util';
 
-export default function buttonPress(
-  this: SlideView,
-  event: GEvent,
-  direction: Direction,
-) {
+export default function buttonPress(this: SlideView, event: GEvent, direction: Direction) {
   const { element, leftActions, rightActions, rebounce } = this;
   if (
     this._translate === 0 ||
     !element ||
-    ((!leftActions || leftActions.disable) &&
-      (!rightActions || rightActions.disable))
+    ((!leftActions || leftActions.disable) && (!rightActions || rightActions.disable))
   ) {
     return;
   }
@@ -39,8 +30,7 @@ export default function buttonPress(
     (t) => t !== currentTarget && !t.getAttribute('data-index'),
   );
   const index = +(target.getAttribute('data-index') || -1);
-  const actions: MergeAction | null =
-    direction === 'left' ? leftActions : rightActions;
+  const actions: MergeAction | null = direction === 'left' ? leftActions : rightActions;
   if (index < 0 || !actions || actions.disable) {
     return;
   }

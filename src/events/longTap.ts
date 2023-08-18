@@ -7,16 +7,13 @@
  */
 
 import { type GEvent } from '@huangjs888/gesture';
-import SlideView from '../index';
+import type SlideView from '../index';
 import { findTarget } from '../util';
 
 export default function longTap(this: SlideView, e: GEvent) {
   const { contentEl, _translate } = this;
   const { sourceEvent, currentTarget } = e;
-  const target = findTarget(
-    sourceEvent,
-    (t) => t !== currentTarget && t !== contentEl,
-  );
+  const target = findTarget(sourceEvent, (t) => t !== currentTarget && t !== contentEl);
   // 触发内容双按压事件
   if (contentEl && target === contentEl) {
     // 收起时候则触发长按事件，未收起则收起

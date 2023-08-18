@@ -2,21 +2,15 @@
  * @Author: Huangjs
  * @Date: 2021-03-17 16:23:00
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-04-11 10:38:36
+ * @LastEditTime: 2023-08-18 16:03:00
  * @Description: ******
  */
-import SlideView, {
-  type Timing,
-  type IEvent,
-  type IActionOption,
-} from '../src/index';
+import SlideView, { type Timing, type IEvent, type IActionOption } from '../src/index';
 import './index.less';
 
 let ID = 0;
 let item: SlideView | null = null;
-const container = document.querySelectorAll(
-  '.slide-view-item',
-)[0] as HTMLElement;
+const container = document.querySelectorAll('.slide-view-item')[0] as HTMLElement;
 const form = document.querySelector('#actions-form') as HTMLFormElement;
 const info = document.querySelector('#info') as HTMLElement;
 const create = document.querySelector('#create') as HTMLElement;
@@ -26,49 +20,27 @@ const showLeft = document.querySelector('#show-left') as HTMLElement;
 const showRight = document.querySelector('#show-right') as HTMLElement;
 const hide = document.querySelector('#hide') as HTMLElement;
 const content = document.querySelector('#content') as HTMLElement;
-const inputContent = document.querySelector(
-  '#input-content',
-) as HTMLInputElement;
+const inputContent = document.querySelector('#input-content') as HTMLInputElement;
 const rebounce = document.querySelector('#rebounce') as HTMLElement;
-const inputRebounce = document.querySelector(
-  '#input-rebounce',
-) as HTMLInputElement;
+const inputRebounce = document.querySelector('#input-rebounce') as HTMLInputElement;
 const friction = document.querySelector('#friction') as HTMLElement;
-const inputFriction = document.querySelector(
-  '#input-friction',
-) as HTMLInputElement;
+const inputFriction = document.querySelector('#input-friction') as HTMLInputElement;
 const duration = document.querySelector('#duration') as HTMLElement;
-const inputDuration = document.querySelector(
-  '#input-duration',
-) as HTMLInputElement;
+const inputDuration = document.querySelector('#input-duration') as HTMLInputElement;
 const timing = document.querySelector('#timing') as HTMLElement;
-const inputTiming = document.querySelector(
-  '#input-timing',
-) as HTMLSelectElement;
+const inputTiming = document.querySelector('#input-timing') as HTMLSelectElement;
 const leftDisable = document.querySelector('#leftDisable') as HTMLElement;
-const inputLeftDisable = document.querySelector(
-  '#input-leftDisable',
-) as HTMLInputElement;
+const inputLeftDisable = document.querySelector('#input-leftDisable') as HTMLInputElement;
 const leftThreshold = document.querySelector('#leftThreshold') as HTMLElement;
-const inputLeftThreshold = document.querySelector(
-  '#input-leftThreshold',
-) as HTMLInputElement;
+const inputLeftThreshold = document.querySelector('#input-leftThreshold') as HTMLInputElement;
 const leftOvershoot = document.querySelector('#leftOvershoot') as HTMLElement;
-const inputLeftOvershoot = document.querySelector(
-  '#input-leftOvershoot',
-) as HTMLInputElement;
+const inputLeftOvershoot = document.querySelector('#input-leftOvershoot') as HTMLInputElement;
 const rightDisable = document.querySelector('#rightDisable') as HTMLElement;
-const inputRightDisable = document.querySelector(
-  '#input-rightDisable',
-) as HTMLInputElement;
+const inputRightDisable = document.querySelector('#input-rightDisable') as HTMLInputElement;
 const rightThreshold = document.querySelector('#rightThreshold') as HTMLElement;
-const inputRightThreshold = document.querySelector(
-  '#input-rightThreshold',
-) as HTMLInputElement;
+const inputRightThreshold = document.querySelector('#input-rightThreshold') as HTMLInputElement;
 const rightOvershoot = document.querySelector('#rightOvershoot') as HTMLElement;
-const inputRightOvershoot = document.querySelector(
-  '#input-rightOvershoot',
-) as HTMLInputElement;
+const inputRightOvershoot = document.querySelector('#input-rightOvershoot') as HTMLInputElement;
 const bgMap = ['#EA4D3E', '#F19A39', '#3478F3'];
 const bgConfirmMap = ['#C7C6CB', '#C7C6CB', '#C7C6CB'];
 const textMap = ['删除', '设旗标', '立即回复'];
@@ -102,7 +74,7 @@ const getActions = (): {
     const overshoot = !!formData.get('leftOvershoot');
     const overshootEdgeSize = +(formData.get('leftOvershootEdgeSize') || 0);
     const overshootFreeSize = +(formData.get('leftOvershootFreeSize') || 0);
-    const items = [];
+    const items: any = [];
     for (let i = number; i > 0; i--) {
       const id = ++ID;
       items.push({
@@ -116,24 +88,14 @@ const getActions = (): {
             ? {
                 className: `action-confirm-${id}-${i}`,
                 icon:
-                  confirmColor && (text === 1 || text === 3)
-                    ? iconConfirmMap[i - 1]
-                    : undefined,
-                text:
-                  confirmText && (text === 2 || text === 3)
-                    ? textConfirmMap[i - 1]
-                    : undefined,
+                  confirmColor && (text === 1 || text === 3) ? iconConfirmMap[i - 1] : undefined,
+                text: confirmText && (text === 2 || text === 3) ? textConfirmMap[i - 1] : undefined,
                 color: confirmColor ? bgMap[i - 1] : undefined,
                 background: confirmColor ? bgConfirmMap[i - 1] : undefined,
               }
             : undefined,
         collapse: collapse,
-        gap:
-          style === 'drawer'
-            ? [i === 3 ? 0 : 1, i === 1 ? 0 : 1]
-            : style === 'round'
-            ? 10
-            : 0,
+        gap: style === 'drawer' ? [i === 3 ? 0 : 1, i === 1 ? 0 : 1] : style === 'round' ? 10 : 0,
         fixedGap: style === 'drawer',
         data: { id, del: i === 1 && cdelete },
       });
@@ -163,7 +125,7 @@ const getActions = (): {
     const overshoot = !!formData.get('rightOvershoot');
     const overshootEdgeSize = +(formData.get('rightOvershootEdgeSize') || 0);
     const overshootFreeSize = +(formData.get('rightOvershootFreeSize') || 0);
-    const items = [];
+    const items: any = [];
     for (let i = number; i > 0; i--) {
       const id = ++ID;
       items.push({
@@ -177,24 +139,14 @@ const getActions = (): {
             ? {
                 className: `action-confirm-${id}-${i}`,
                 icon:
-                  confirmColor && (text === 1 || text === 3)
-                    ? iconConfirmMap[i - 1]
-                    : undefined,
-                text:
-                  confirmText && (text === 2 || text === 3)
-                    ? textConfirmMap[i - 1]
-                    : undefined,
+                  confirmColor && (text === 1 || text === 3) ? iconConfirmMap[i - 1] : undefined,
+                text: confirmText && (text === 2 || text === 3) ? textConfirmMap[i - 1] : undefined,
                 color: confirmColor ? bgMap[i - 1] : undefined,
                 background: confirmColor ? bgConfirmMap[i - 1] : undefined,
               }
             : undefined,
         collapse: collapse,
-        gap:
-          style === 'drawer'
-            ? [i === 3 ? 0 : 1, i === 1 ? 0 : 1]
-            : style === 'round'
-            ? 10
-            : 0,
+        gap: style === 'drawer' ? [i === 3 ? 0 : 1, i === 1 ? 0 : 1] : style === 'round' ? 10 : 0,
         fixedGap: style === 'drawer',
         data: { id, del: i === 1 && cdelete },
       });

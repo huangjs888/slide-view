@@ -7,7 +7,7 @@
  */
 
 import { type GEvent } from '@huangjs888/gesture';
-import SlideView from '../index';
+import type SlideView from '../index';
 import { transform } from '../transform';
 
 export default function pointerEnd(this: SlideView, e: GEvent) {
@@ -32,8 +32,7 @@ export default function pointerEnd(this: SlideView, e: GEvent) {
     !this._isMoving ||
     !this._startPoint ||
     this._startAngle !== 1 ||
-    ((!leftActions || leftActions.disable) &&
-      (!rightActions || rightActions.disable))
+    ((!leftActions || leftActions.disable) && (!rightActions || rightActions.disable))
   ) {
     return;
   }
@@ -45,19 +44,13 @@ export default function pointerEnd(this: SlideView, e: GEvent) {
   if (this._translate === 0 || Math.abs(delta) <= 3) {
     return;
   }
-  const actions =
-    this._translate > 0
-      ? leftActions
-      : this._translate < 0
-      ? rightActions
-      : null;
+  const actions = this._translate > 0 ? leftActions : this._translate < 0 ? rightActions : null;
   if (actions && !actions.disable) {
     // 进行完全覆盖滑出事件
     if (this._overshooting) {
       const index = actions.items.length - 1;
       const item = actions.items[index];
-      const translate =
-        (this._translate * this._width) / Math.abs(this._translate);
+      const translate = (this._translate * this._width) / Math.abs(this._translate);
       this._translate = translate;
       transform.apply(this, [translate]);
       this.emit(item.confirm ? 'buttonConfirm' : 'buttonPress', {

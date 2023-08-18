@@ -13,7 +13,7 @@ import doubleTap from './doubleTap';
 import pointerStart from './pointerStart';
 import pointerMove from './pointerMove';
 import pointerEnd from './pointerEnd';
-import SlideView from '../index';
+import type SlideView from '../index';
 
 export default function bindGesture(this: SlideView, element: HTMLElement) {
   // 绑定手势

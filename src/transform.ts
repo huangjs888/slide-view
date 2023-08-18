@@ -6,7 +6,8 @@
  * @Description: ******
  */
 
-import SlideView, { type MergeAction, type Confirm } from './index';
+import type SlideView from './index';
+import { type MergeAction, type Confirm } from './index';
 import { setStyle } from './util';
 
 export const cTransform = function cTransform(
@@ -17,16 +18,14 @@ export const cTransform = function cTransform(
   const { contentEl, leftActions, rightActions, duration, timing } = this;
   if (
     !contentEl ||
-    ((!leftActions || leftActions.disable) &&
-      (!rightActions || rightActions.disable))
+    ((!leftActions || leftActions.disable) && (!rightActions || rightActions.disable))
   ) {
     return;
   }
   const transition = duration <= 0 ? '' : `transform ${duration}s ${timing} 0s`;
   const { index, direction } = confirm;
   // 这里注意：在调用hideButton隐藏按钮之后再执行该恢复方法，_translate等于0了，所以无需再判断
-  const factor =
-    this._translate === 0 ? 0 : this._translate / Math.abs(this._translate);
+  const factor = this._translate === 0 ? 0 : this._translate / Math.abs(this._translate);
   const aTransform = ({ style, items }: MergeAction) => {
     let delta = 0;
     if (style === 'drawer') {
@@ -39,9 +38,7 @@ export const cTransform = function cTransform(
       if (items.length === 1) {
         // 如果是仅有一个按钮，确认的时候设置2倍变化
         setStyle(contentEl, {
-          transform: `translate3d(${
-            translate !== 0 ? translate : this._translate
-          }px, 0, 0)`,
+          transform: `translate3d(${translate !== 0 ? translate : this._translate}px, 0, 0)`,
           transition,
         });
       }
@@ -83,30 +80,20 @@ export const transform = function transform(
   translate: number,
   duration: number = this.duration,
 ) {
-  const { leftEl, rightEl, contentEl, leftActions, rightActions, timing } =
-    this;
+  const { leftEl, rightEl, contentEl, leftActions, rightActions, timing } = this;
   if (
     !leftEl ||
     !rightEl ||
     !contentEl ||
-    ((!leftActions || leftActions.disable) &&
-      (!rightActions || rightActions.disable))
+    ((!leftActions || leftActions.disable) && (!rightActions || rightActions.disable))
   ) {
     return;
   }
   let factor = 0;
   const transition = duration <= 0 ? '' : `transform ${duration}s ${timing} 0s`;
   const wTransition =
-    duration <= 0
-      ? ''
-      : `width ${duration}s ${timing} 0s, transform ${duration}s ${timing} 0s`;
-  const aTransform = ({
-    style,
-    items,
-    element,
-    width: tWidth,
-    gap: tGap,
-  }: MergeAction) => {
+    duration <= 0 ? '' : `width ${duration}s ${timing} 0s, transform ${duration}s ${timing} 0s`;
+  const aTransform = ({ style, items, element, width: tWidth, gap: tGap }: MergeAction) => {
     let styleObj = {};
     let xMove = translate;
     let delta = 0;

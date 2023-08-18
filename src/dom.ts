@@ -9,10 +9,7 @@
 import { addClass, cssInject } from './util';
 import css from './css';
 
-export default function generateEl(
-  container: HTMLElement | string,
-  className?: string,
-) {
+export default function generateEl(container: HTMLElement | string, className?: string) {
   let tempContainer: HTMLElement | null;
   try {
     if (typeof container === 'string') {
@@ -27,24 +24,12 @@ export default function generateEl(
     throw new Error('Please pass in a valid container element...');
   }
   cssInject(css);
-  const viewElement = addClass(
-    document.createElement('div'),
-    `hjs-slideview ${className || ''}`,
-  );
-  const leftElement = addClass(
-    document.createElement('div'),
-    'hjs-slideview__left',
-  );
+  const viewElement = addClass(document.createElement('div'), `hjs-slideview ${className || ''}`);
+  const leftElement = addClass(document.createElement('div'), 'hjs-slideview__left');
   viewElement.appendChild(leftElement);
-  const rightElement = addClass(
-    document.createElement('div'),
-    'hjs-slideview__right',
-  );
+  const rightElement = addClass(document.createElement('div'), 'hjs-slideview__right');
   viewElement.appendChild(rightElement);
-  const contentElement = addClass(
-    document.createElement('div'),
-    'hjs-slideview__content',
-  );
+  const contentElement = addClass(document.createElement('div'), 'hjs-slideview__content');
   viewElement.appendChild(contentElement);
   tempContainer.innerHTML = '';
   tempContainer.appendChild(viewElement);
