@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2021-10-21 16:11:29
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-18 15:50:05
+ * @LastEditTime: 2023-08-21 14:49:05
  * @Description: ******
  */
 
@@ -36,7 +36,8 @@ module.exports = {
     rules: [
       {
         test: /\.(j|t)s$/,
-        exclude: MOD_ENV === 'esm' ? /node_modules/ : undefined,
+        exclude:
+          MOD_ENV === 'esm' ? /node_modules/ : /node_modules(?!(\/|\\)(@huangjs888(\/|\\)(.+)?))/,
         use: 'babel-loader',
       },
       // 因为这里使用babel转化ts，所以不需要配置ts-loader

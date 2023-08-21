@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2021-10-21 16:11:29
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-18 16:53:23
+ * @LastEditTime: 2023-08-21 14:50:57
  * @Description: ******
  */
 
@@ -78,7 +78,7 @@ module.exports = (env, argv) => {
         }, */
         {
           test: /\.(j|t)s$/,
-          exclude: /node_modules/,
+          exclude: /node_modules(?!(\/|\\)(@huangjs888(\/|\\)(.+)?))/,
           use: [
             {
               loader: 'babel-loader', // 使用babel转换源代码到配置后的语法

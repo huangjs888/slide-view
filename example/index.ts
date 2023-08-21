@@ -2,10 +2,10 @@
  * @Author: Huangjs
  * @Date: 2021-03-17 16:23:00
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-18 16:03:00
+ * @LastEditTime: 2023-08-21 14:35:34
  * @Description: ******
  */
-import SlideView, { type Timing, type IEvent, type IActionOption } from '../src/index';
+import SlideView, { type Timing, type IEvent, type IActionOption } from '../es/index';
 import './index.less';
 
 let ID = 0;
