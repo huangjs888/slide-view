@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-10-13 14:07:10
+ * @LastEditTime: 2023-10-13 15:00:36
  * @Description: ******
  */
 
@@ -206,6 +206,7 @@ class SlideView extends EventTarget<IType, IEvent> {
       if (!parentEl) {
         return;
       }
+      parentEl.innerHTML = '';
       this[`${_direction}Actions`] = null;
       if (actions.items && actions.items.length > 0) {
         const {
@@ -254,8 +255,8 @@ class SlideView extends EventTarget<IType, IEvent> {
               className: 'hjs-slideview__action__wrapper',
             },
             element,
+            tElement,
           ) as HTMLElement;
-          tElement.appendChild(wrapper);
           const tItem: MergeActionItem = {
             ...item,
             wrapper,
