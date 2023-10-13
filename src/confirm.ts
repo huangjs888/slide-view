@@ -2,13 +2,14 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-04 10:29:15
+ * @LastEditTime: 2023-10-12 11:40:02
  * @Description: ******
  */
 
-import type SlideView from './index';
-import { type MergeActionItem } from './index';
-import { setStyle, addClass, removeClass, getIconType } from './util';
+import { setStyle, addClass, removeClass } from '@huangjs888/lightdom';
+import type SlideView from './slideview';
+import { type MergeActionItem } from './slideview';
+import { getIconType } from './util';
 
 export const confirmStyle = function (item: MergeActionItem, isConfirm: boolean = false) {
   const {

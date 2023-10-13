@@ -1,0 +1,118 @@
+import EventTarget from '@huangjs888/gesture/emitter';
+import type { IGestureEvent } from '@huangjs888/gesture';
+import { type IElement } from '@huangjs888/lightdom';
+declare class SlideView extends EventTarget<IType, IEvent> {
+    element: HTMLElement | null;
+    contentEl: HTMLElement | null;
+    leftEl: HTMLElement | null;
+    rightEl: HTMLElement | null;
+    leftActions: MergeAction | null;
+    rightActions: MergeAction | null;
+    friction: number;
+    rebounce: number;
+    duration: number;
+    timing: ITiming;
+    _destory: boolean;
+    _direction: IDirection;
+    _confirming: Confirm | null;
+    _overshooting: boolean;
+    _translate: number;
+    _width: number;
+    _offset: number;
+    _startOffset: number;
+    _startTranslate: number;
+    _startPoint: number[] | null;
+    _startAngle: number;
+    _timestamp: number;
+    _isMoving: boolean;
+    _unbind: (() => void) | null;
+    constructor(options: IOption);
+    setContent(content: IElement, dangerous?: boolean): void;
+    setFriction(friction?: number): void;
+    setRebounce(rebounce?: number): void;
+    setDuration(duration?: number): void;
+    setTiming(timing?: ITiming): void;
+    setDisable(disable?: boolean, direction?: IDirection): void;
+    setOvershoot(overshoot?: boolean, direction?: IDirection): void;
+    setThreshold(threshold?: number, direction?: IDirection): void;
+    setActions(actions?: IActionOption, direction?: IDirection): void;
+    toggle(direction?: IDirection): Promise<void>;
+    show(direction?: IDirection): Promise<void>;
+    hide(): Promise<void>;
+    destory(): void;
+}
+export type IDirection = 'left' | 'right' | 'both' | 'none';
+export type ITiming = 'linear' | 'ease' | 'ease-in' | 'ease-out' | 'ease-in-out' | `cubic-bezier(${number},${number},${number},${number})`;
+export type ActionStyle = 'drawer' | 'accordion';
+export type Confirm = {
+    direction: IDirection;
+    index: number;
+};
+export type MergeActionItem = {
+    wrapper: HTMLElement;
+    element: HTMLElement;
+    width: number;
+    gap: number[];
+    fixedGap: boolean;
+} & IActionItem;
+export type MergeAction = {
+    style: ActionStyle;
+    disable: boolean;
+    threshold: number;
+    overshoot: boolean;
+    overshootFreeSize: number;
+    overshootEdgeSize: number;
+    element: HTMLElement;
+    width: number;
+    gap: number;
+    items: MergeActionItem[];
+};
+export type IActionItem = {
+    className?: string;
+    text?: string;
+    icon?: string;
+    color?: string;
+    background?: string;
+    confirm?: {
+        className?: string;
+        text?: string;
+        icon?: string;
+        color?: string;
+        background?: string;
+    };
+    collapse?: boolean;
+    gap?: number | number[];
+    fixedGap?: boolean;
+    data?: any;
+};
+export type IActionOption = {
+    className?: string;
+    style?: ActionStyle;
+    disable?: boolean;
+    threshold?: number;
+    overshoot?: boolean;
+    overshootEdgeSize?: number;
+    overshootFreeSize?: number;
+    items?: IActionItem[];
+};
+export type IOption = {
+    className?: string;
+    container: IElement;
+    content?: IElement;
+    friction?: number;
+    rebounce?: number;
+    duration?: number;
+    timing?: ITiming;
+    leftActions?: IActionOption;
+    rightActions?: IActionOption;
+};
+export type IType = 'show' | 'hide' | 'press' | 'longPress' | 'doublePress' | 'buttonPress' | 'buttonConfirm';
+export type IEvent = {
+    currentTarget: HTMLElement;
+    timestamp: number;
+    sourceEvent: IGestureEvent | null;
+    direction?: IDirection;
+    index?: number;
+    data?: any;
+};
+export default SlideView;

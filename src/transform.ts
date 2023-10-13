@@ -6,9 +6,9 @@
  * @Description: ******
  */
 
-import type SlideView from './index';
-import { type MergeAction, type Confirm } from './index';
-import { setStyle } from './util';
+import { setStyle } from '@huangjs888/lightdom';
+import type SlideView from './slideview';
+import { type MergeAction, type Confirm } from './slideview';
 
 export const cTransform = function cTransform(
   this: SlideView,

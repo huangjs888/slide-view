@@ -6,9 +6,9 @@
  * @Description: ******
  */
 
-import type SlideView from './index';
-import { type MergeAction } from './index';
-import { setStyle } from './util';
+import { setStyle } from '@huangjs888/lightdom';
+import type SlideView from './slideview';
+import { type MergeAction } from './slideview';
 
 export const overshootChange = function (this: SlideView, actions: MergeAction | null) {
   if (actions && !actions.disable) {

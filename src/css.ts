@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-02-14 16:23:54
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-04-11 10:32:41
+ * @LastEditTime: 2023-10-13 13:57:29
  * @Description: ******
  */
 export default `
@@ -56,7 +56,7 @@ export default `
   box-sizing: border-box;
   max-width: 100%;
   height: 100%;
-  padding: 0 20px;
+  padding: 0 16px;
   cursor: pointer;
 }
 .hjs-slideview__action__icon {

@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2021-10-21 16:11:29
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-21 14:50:57
+ * @LastEditTime: 2023-10-12 15:07:56
  * @Description: ******
  */
 
@@ -30,7 +30,7 @@ module.exports = (env, argv) => {
     devtool: 'source-map',
     context: resolve(__dirname, './'),
     entry: {
-      index: resolve(__dirname, './index.ts'),
+      index: resolve(__dirname, './src/index.tsx'),
     },
     output: {
       filename: devMode ? '[name].js' : '[name].[contenthash:8].js',
@@ -40,7 +40,7 @@ module.exports = (env, argv) => {
     module: {
       rules: [
         {
-          test: /\.(c|le)ss$/,
+          test: /\.css$/,
           use: [
             {
               loader: devMode ? 'style-loader' : MiniCssExtractPlugin.loader,
@@ -51,7 +51,7 @@ module.exports = (env, argv) => {
                 url: true, // 对css里image路径使用下面的loader处理
               },
             },
-            'less-loader',
+            // 'less-loader',// 不需要使用less
           ],
         },
         // webpack5 配置图片loader两种选一个
@@ -63,49 +63,22 @@ module.exports = (env, argv) => {
             filename: '[name].[hash:8].[ext]',
           },
         },
-        /* {
-          test: /\.(jpe?g|png|gif|bmp|ico|svg|webp)$/,
-          use: {
-            loader: 'file-loader',
-            options: {
-              // 设置打包后的图片名称和文件夹
-              name: '[name].[hash:8].[ext]',
-              esModule: false, // 不转为 esModule
-              limit: 4 * 1024, // url-loader跟file-loader配置差不多，limit是url-loader的参数，当图片小于 limit 时，图片会被转为 base64
-            },
-          },
-          type: 'javascript/auto',
-        }, */
         {
-          test: /\.(j|t)s$/,
-          exclude: /node_modules(?!(\/|\\)(@huangjs888(\/|\\)(.+)?))/,
+          test: /\.(j|t)sx?$/,
+          exclude: /node_modules/,
           use: [
             {
               loader: 'babel-loader', // 使用babel转换源代码到配置后的语法
               options: {
-                presets: ['@babel/preset-env', '@babel/preset-typescript'],
+                presets: ['@babel/preset-env', '@babel/preset-react', '@babel/preset-typescript'],
               },
             },
           ],
         },
-        /* {
-          test: /\.js$/,
-          exclude: /node_modules/,
-          use: [
-            {
-              loader: 'babel-loader',
-            },
-          ],
-        },
-        {
-          test: /\.ts$/,
-          exclude: /node_modules/,
-          use: 'ts-loader', // 因为这里没有使用babel转化ts，所以需要配置ts-loader
-        }, */
       ],
     },
     resolve: {
-      extensions: ['.ts', '.js'],
+      extensions: ['.ts', '.js', '.tsx', '.jsx'],
     },
     plugins: [
       new MiniCssExtractPlugin({
@@ -115,7 +88,7 @@ module.exports = (env, argv) => {
         inject: 'body',
         chunks: ['lib', 'data', 'index'],
         filename: 'index.html',
-        template: resolve(__dirname, './index.html'),
+        template: resolve(__dirname, './public/index_react.html'),
       }),
       // new webpack.HotModuleReplacementPlugin(),
     ],

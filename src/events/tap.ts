@@ -2,21 +2,21 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-04 10:13:31
+ * @LastEditTime: 2023-10-13 09:32:50
  * @Description: ******
  */
 
-import { type GEvent } from '@huangjs888/gesture';
+import { type IGestureEvent } from '@huangjs888/gesture';
 import buttonPress from './buttonPress';
 import type SlideView from '../index';
 import { findTarget } from '../util';
 
-export default function tap(this: SlideView, e: GEvent) {
-  const { contentEl, leftEl, rightEl, _translate } = this;
-  const { sourceEvent, currentTarget } = e;
+export default function tap(this: SlideView, e: IGestureEvent) {
+  const { element, contentEl, leftEl, rightEl, _translate } = this;
+  const { sourceEvent } = e;
   const target = findTarget(
     sourceEvent,
-    (t) => t !== currentTarget && t !== contentEl && t !== leftEl && t !== rightEl,
+    (t) => t !== element && t !== contentEl && t !== leftEl && t !== rightEl,
   );
   // 触发内容元素按压事件
   if (contentEl && target === contentEl) {

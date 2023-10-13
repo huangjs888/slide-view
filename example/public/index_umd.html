@@ -1,0 +1,676 @@
+<!--
+ * @Author: Huangjs
+ * @Date: 2021-10-15 15:24:21
+ * @LastEditors: Huangjs
+ * @LastEditTime: 2023-04-11 11:33:28
+ * @Description: ******
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scaleable=no"
+      name="viewport" />
+    <title>滑动删除</title>
+    <script src="../dist/slide-view.min.js"></script>
+    <style>
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        overflow-y: auto;
+        background: #f0f0f0;
+      }
+      h2 {
+        margin-top: 5px;
+        line-height: 24px;
+        text-align: center;
+      }
+      .slide-view-example {
+        margin-top: 5px;
+      }
+      .slide-view-example .slide-view-item {
+        margin: 5px 0;
+      }
+      .slide-view-example .slide-view-item .slide-view-cell {
+        display: flex;
+        align-items: center;
+        box-sizing: border-box;
+        width: 100%;
+        height: 64px;
+        padding: 0 15px;
+        background: #fff;
+      }
+      .slide-view-example .slide-view-item.active .slide-view-cell {
+        background: #ddd;
+      }
+      .operate {
+        margin: 5px 10px;
+        font-size: 12px;
+      }
+      .operate .item-div {
+        display: flex;
+        align-items: center;
+        margin: 5px 0;
+        line-height: 13px;
+      }
+      .operate .item-div label {
+        display: flex;
+        align-items: center;
+        line-height: 13px;
+      }
+      .operate .item-div select,
+      .operate .item-div input,
+      .operate .item-div button {
+        margin: 0px 3px;
+      }
+      .operate .item-div input[name='leftThreshold'],
+      .operate .item-div input[name='rightThreshold'],
+      .operate .item-div input[name='leftOvershootEdgeSize'],
+      .operate .item-div input[name='rightOvershootEdgeSize'],
+      .operate .item-div input[name='leftOvershootFreeSize'],
+      .operate .item-div input[name='rightOvershootFreeSize'],
+      .operate .item-div input[name='leftOverallFreeSize'],
+      .operate .item-div input[name='rightOverallFreeSize'] {
+        max-width: 58px;
+      }
+      .operate .item-div .col {
+        width: 50%;
+      }
+      #info {
+        height: 24px;
+        line-height: 24px;
+        text-align: center;
+      }
+      @media (max-width: 360px) {
+        #actions-form {
+          flex-direction: column;
+        }
+        .operate .item-div .col {
+          width: 100%;
+        }
+      }
+
+      .leftAction-round .hjs-slideview__action__wrapper,
+      .rightAction-round .hjs-slideview__action__wrapper {
+        width: auto;
+        height: auto;
+        padding: 10px 0;
+        border-radius: 24px;
+      }
+      .leftAction-round .hjs-slideview__action,
+      .rightAction-round .hjs-slideview__action {
+        flex-direction: row;
+        padding: 0 10px;
+      }
+      .leftAction-round .hjs-slideview__action__text,
+      .rightAction-round .hjs-slideview__action__text {
+        width: auto;
+        text-align: left;
+      }
+      .leftAction-drawer,
+      .rightAction-drawer {
+        overflow: hidden;
+        border-radius: 9px;
+      }
+      .leftAction-drawer .hjs-slideview__action__wrapper,
+      .rightAction-drawer .hjs-slideview__action__wrapper {
+        width: auto;
+        border-radius: 3px;
+      }
+      .leftAction-drawer .hjs-slideview__action__wrapper:first-child,
+      .rightAction-drawer .hjs-slideview__action__wrapper:first-child {
+        border-radius: 9px 3px 3px 9px;
+      }
+      .leftAction-drawer .hjs-slideview__action__wrapper:last-child,
+      .rightAction-drawer .hjs-slideview__action__wrapper:last-child {
+        border-radius: 3px 9px 9px 3px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h2>滑动删除示例</h2>
+    <div class="slide-view-example">
+      <div class="slide-view-item" style="height: 64px"></div>
+    </div>
+    <div id="info" class="item-div"></div>
+    <div class="operate">
+      <div class="item-div">
+        <div>
+          create:
+          <button type="button" id="create">create</button>
+        </div>
+        <div style="margin-left: 20px">
+          destory:
+          <button type="button" id="destory">destory</button>
+        </div>
+      </div>
+      <div style="border: 1px solid #ddd; margin: 0 -5px; padding: 0 5px">
+        <div class="item-div">
+          <div>
+            actions:
+            <button type="button" id="actions">setActions</button>
+          </div>
+          <div style="margin-left: 20px">
+            hide:
+            <button type="button" id="hide">hide</button>
+          </div>
+        </div>
+        <form id="actions-form" class="item-div" autocomplete="off">
+          <div class="col">
+            <div class="item-div">
+              <label><input name="left" type="checkbox" />left</label>
+              <button type="button" id="show-left">show</button>
+              <label> <input name="leftDelete" type="checkbox" />delete </label>
+            </div>
+            <div>
+              actionNum:<br />
+              <div class="item-div">
+                <label> <input type="radio" name="leftNum" value="1" />1 </label>
+                <label> <input type="radio" name="leftNum" value="2" />2 </label>
+                <label> <input type="radio" name="leftNum" value="3" checked />3 </label>
+                <label> <input name="leftCollapse" type="checkbox" checked />collapse </label>
+              </div>
+            </div>
+            <div>
+              text/icon:<br />
+              <div class="item-div">
+                <label> <input type="radio" name="leftText" value="1" />icon </label>
+                <label> <input type="radio" name="leftText" value="2" />text </label>
+                <label> <input type="radio" name="leftText" value="3" checked />both </label>
+              </div>
+            </div>
+            <div>
+              confirm:<br />
+              <div class="item-div">
+                <label> <input name="leftConfirmText" type="checkbox" />text </label>
+                <label> <input name="leftConfirmColor" type="checkbox" />color/background </label>
+              </div>
+            </div>
+            <div class="item-div">
+              style:
+              <label> <input type="radio" name="leftStyle" value="rect" checked />rect </label>
+              <label> <input type="radio" name="leftStyle" value="round" />round </label>
+              <label> <input type="radio" name="leftStyle" value="drawer" />drawer </label>
+            </div>
+            <div class="item-div">
+              disable:
+              <label id="leftDisable">
+                <input id="input-leftDisable" name="leftDisable" type="checkbox" />disable
+              </label>
+            </div>
+            <div class="item-div">
+              threshold:
+              <input id="input-leftThreshold" name="leftThreshold" type="number" value="40" />
+              <button type="button" id="leftThreshold">ok</button>
+            </div>
+            <div class="item-div">
+              overshoot:
+              <label id="leftOvershoot">
+                <input id="input-leftOvershoot" name="leftOvershoot" type="checkbox" />overshoot
+              </label>
+            </div>
+            <div class="item-div">
+              overshootEdgeSize:
+              <input name="leftOvershootEdgeSize" type="number" value="80" />
+            </div>
+            <div class="item-div">
+              overshootFreeSize:
+              <input name="leftOvershootFreeSize" type="number" value="30" />
+            </div>
+          </div>
+          <div class="col">
+            <div class="item-div">
+              <label><input name="right" type="checkbox" checked />right</label>
+              <button type="button" id="show-right">show</button>
+              <label> <input name="rightDelete" type="checkbox" />delete </label>
+            </div>
+            <div>
+              actionNum:<br />
+              <div class="item-div">
+                <label> <input type="radio" name="rightNum" value="1" />1 </label>
+                <label> <input type="radio" name="rightNum" value="2" />2 </label>
+                <label> <input type="radio" name="rightNum" value="3" checked />3 </label>
+                <label> <input name="rightCollapse" type="checkbox" checked />collapse </label>
+              </div>
+            </div>
+            <div>
+              text/icon:<br />
+              <div class="item-div">
+                <label> <input type="radio" name="rightText" value="1" />icon </label>
+                <label> <input type="radio" name="rightText" value="2" />text </label>
+                <label> <input type="radio" name="rightText" value="3" checked />both </label>
+              </div>
+            </div>
+            <div>
+              confirm:<br />
+              <div class="item-div">
+                <label> <input name="rightConfirmText" type="checkbox" />text </label>
+                <label> <input name="rightConfirmColor" type="checkbox" />color/background </label>
+              </div>
+            </div>
+            <div class="item-div">
+              style:
+              <label> <input type="radio" name="rightStyle" value="rect" checked />rect </label>
+              <label> <input type="radio" name="rightStyle" value="round" />round </label>
+              <label> <input type="radio" name="rightStyle" value="drawer" />drawer </label>
+            </div>
+            <div class="item-div">
+              disable:
+              <label id="rightDisable">
+                <input id="input-rightDisable" name="rightDisable" type="checkbox" />disable
+              </label>
+            </div>
+            <div class="item-div">
+              threshold:
+              <input id="input-rightThreshold" name="rightThreshold" type="number" value="40" />
+              <button type="button" id="rightThreshold">ok</button>
+            </div>
+            <div class="item-div">
+              overshoot:
+              <label id="rightOvershoot">
+                <input id="input-rightOvershoot" name="rightOvershoot" type="checkbox" />overshoot
+              </label>
+            </div>
+            <div class="item-div">
+              overshootEdgeSize:
+              <input name="rightOvershootEdgeSize" type="number" value="80" />
+            </div>
+            <div class="item-div">
+              overshootFreeSize:
+              <input name="rightOvershootFreeSize" type="number" value="30" />
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="item-div">
+        <div class="item-div" style="margin-right: 10px">
+          rebounce:
+          <input style="max-width: 80px" id="input-rebounce" type="number" value="12" />
+          <button type="button" id="rebounce">ok</button>
+        </div>
+        <div class="item-div">
+          friction:
+          <input style="max-width: 80px" id="input-friction" type="number" value="0.6" />
+          <button type="button" id="friction">ok</button>
+        </div>
+      </div>
+      <div class="item-div">
+        <div class="item-div" style="margin-right: 10px">
+          duration:
+          <input style="max-width: 80px" id="input-duration" type="number" value="0.4" />
+          <button type="button" id="duration">ok</button>
+        </div>
+        <div class="item-div">
+          timing:
+          <select style="max-width: 80px" id="input-timing">
+            <option value="linear">linear</option>
+            <option value="ease" selected>ease</option>
+            <option value="ease-in">ease-in</option>
+            <option value="ease-out">ease-out</option>
+            <option value="ease-in-out">ease-in-out</option>
+          </select>
+          <button type="button" id="timing">ok</button>
+        </div>
+      </div>
+      <div class="item-div">
+        content:
+        <input style="width: 200px" id="input-content" type="text" value="滑动菜单示例" />
+        <button type="button" id="content">ok</button>
+      </div>
+    </div>
+    <script>
+      (function () {
+        let ID = 0;
+        let item = null;
+        const container = document.querySelectorAll('.slide-view-item')[0];
+        const form = document.querySelector('#actions-form');
+        const info = document.querySelector('#info');
+        const create = document.querySelector('#create');
+        const destory = document.querySelector('#destory');
+        const actions = document.querySelector('#actions');
+        const showLeft = document.querySelector('#show-left');
+        const showRight = document.querySelector('#show-right');
+        const hide = document.querySelector('#hide');
+        const content = document.querySelector('#content');
+        const inputContent = document.querySelector('#input-content');
+        const rebounce = document.querySelector('#rebounce');
+        const inputRebounce = document.querySelector('#input-rebounce');
+        const friction = document.querySelector('#friction');
+        const inputFriction = document.querySelector('#input-friction');
+        const duration = document.querySelector('#duration');
+        const inputDuration = document.querySelector('#input-duration');
+        const timing = document.querySelector('#timing');
+        const inputTiming = document.querySelector('#input-timing');
+        const leftDisable = document.querySelector('#leftDisable');
+        const inputLeftDisable = document.querySelector('#input-leftDisable');
+        const leftThreshold = document.querySelector('#leftThreshold');
+        const inputLeftThreshold = document.querySelector('#input-leftThreshold');
+        const leftOvershoot = document.querySelector('#leftOvershoot');
+        const inputLeftOvershoot = document.querySelector('#input-leftOvershoot');
+        const rightDisable = document.querySelector('#rightDisable');
+        const inputRightDisable = document.querySelector('#input-rightDisable');
+        const rightThreshold = document.querySelector('#rightThreshold');
+        const inputRightThreshold = document.querySelector('#input-rightThreshold');
+        const rightOvershoot = document.querySelector('#rightOvershoot');
+        const inputRightOvershoot = document.querySelector('#input-rightOvershoot');
+        const bgMap = ['#EA4D3E', '#F19A39', '#3478F3'];
+        const bgConfirmMap = ['#C7C6CB', '#C7C6CB', '#C7C6CB'];
+        const textMap = ['删除', '设旗标', '立即回复'];
+        const textConfirmMap = ['确定删除', '确定设旗标', '确定回复'];
+        const iconMap = ['../asserts/delete.png', '../asserts/flag.png', '../asserts/reply.png'];
+        const iconConfirmMap = [
+          '../asserts/delete-confirm.png',
+          '../asserts/flag-confirm.png',
+          '../asserts/reply-confirm.png',
+        ];
+        const getActions = () => {
+          const formData = new FormData(form);
+          let leftActions;
+          if (formData.get('left')) {
+            const cdelete = !!formData.get('leftDelete');
+            const collapse = !!formData.get('leftCollapse');
+            const number = +(formData.get('leftNum') || 1);
+            const text = +(formData.get('leftText') || 3);
+            const confirmText = !!formData.get('leftConfirmText');
+            const confirmColor = !!formData.get('leftConfirmColor');
+            const style = formData.get('leftStyle') || 'rect';
+            const disable = !!formData.get('leftDisable');
+            const threshold = +(formData.get('leftThreshold') || 0);
+            const overshoot = !!formData.get('leftOvershoot');
+            const overshootEdgeSize = +(formData.get('leftOvershootEdgeSize') || 0);
+            const overshootFreeSize = +(formData.get('leftOvershootFreeSize') || 0);
+            const items = [];
+            for (let i = number; i > 0; i--) {
+              const id = ++ID;
+              items.push({
+                className: `action-${id}-${i}`,
+                icon: text === 1 || text === 3 ? iconMap[i - 1] : undefined,
+                text: text === 2 || text === 3 ? textMap[i - 1] : undefined,
+                color: '#fff',
+                background: bgMap[i - 1],
+                confirm:
+                  confirmText || confirmColor
+                    ? {
+                        className: `action-confirm-${id}-${i}`,
+                        icon:
+                          confirmColor && (text === 1 || text === 3)
+                            ? iconConfirmMap[i - 1]
+                            : undefined,
+                        text:
+                          confirmText && (text === 2 || text === 3)
+                            ? textConfirmMap[i - 1]
+                            : undefined,
+                        color: confirmColor ? bgMap[i - 1] : undefined,
+                        background: confirmColor ? bgConfirmMap[i - 1] : undefined,
+                      }
+                    : undefined,
+                collapse: collapse,
+                gap:
+                  style === 'drawer'
+                    ? [i === 3 ? 0 : 1, i === 1 ? 0 : 1]
+                    : style === 'round'
+                    ? 10
+                    : 0,
+                fixedGap: style === 'drawer',
+                data: { id, del: i === 1 && cdelete },
+              });
+            }
+            leftActions = {
+              className: `leftAction-${style}`,
+              style: style === 'drawer' ? 'drawer' : 'accordion',
+              disable,
+              threshold,
+              overshoot,
+              overshootEdgeSize,
+              overshootFreeSize,
+              items,
+            };
+          }
+          let rightActions;
+          if (formData.get('right')) {
+            const cdelete = !!formData.get('rightDelete');
+            const collapse = !!formData.get('rightCollapse');
+            const number = +(formData.get('rightNum') || 1);
+            const text = +(formData.get('rightText') || 3);
+            const confirmText = !!formData.get('rightConfirmText');
+            const confirmColor = !!formData.get('rightConfirmColor');
+            const style = formData.get('rightStyle') || 'rect';
+            const disable = !!formData.get('rightDisable');
+            const threshold = +(formData.get('rightThreshold') || 0);
+            const overshoot = !!formData.get('rightOvershoot');
+            const overshootEdgeSize = +(formData.get('rightOvershootEdgeSize') || 0);
+            const overshootFreeSize = +(formData.get('rightOvershootFreeSize') || 0);
+            const items = [];
+            for (let i = number; i > 0; i--) {
+              const id = ++ID;
+              items.push({
+                className: `action-${id}-${i}`,
+                icon: text === 1 || text === 3 ? iconMap[i - 1] : undefined,
+                text: text === 2 || text === 3 ? textMap[i - 1] : undefined,
+                color: '#fff',
+                background: bgMap[i - 1],
+                confirm:
+                  confirmText || confirmColor
+                    ? {
+                        className: `action-confirm-${id}-${i}`,
+                        icon:
+                          confirmColor && (text === 1 || text === 3)
+                            ? iconConfirmMap[i - 1]
+                            : undefined,
+                        text:
+                          confirmText && (text === 2 || text === 3)
+                            ? textConfirmMap[i - 1]
+                            : undefined,
+                        color: confirmColor ? bgMap[i - 1] : undefined,
+                        background: confirmColor ? bgConfirmMap[i - 1] : undefined,
+                      }
+                    : undefined,
+                collapse: collapse,
+                gap:
+                  style === 'drawer'
+                    ? [i === 3 ? 0 : 1, i === 1 ? 0 : 1]
+                    : style === 'round'
+                    ? 10
+                    : 0,
+                fixedGap: style === 'drawer',
+                data: { id, del: i === 1 && cdelete },
+              });
+            }
+            rightActions = {
+              className: `rightAction-${style}`,
+              style: style === 'drawer' ? 'drawer' : 'accordion',
+              disable,
+              threshold,
+              overshoot,
+              overshootEdgeSize,
+              overshootFreeSize,
+              items,
+            };
+          }
+          return { left: leftActions, right: rightActions };
+        };
+        const getContent = () => {
+          const cell = document.createElement('div');
+          cell.classList.add('slide-view-cell');
+          const span = document.createElement('span');
+          span.innerText = inputContent.value;
+          cell.appendChild(span);
+          return cell;
+        };
+        create.onclick = () => {
+          if (item) {
+            item.destory();
+            item = null;
+            ID = 0;
+          }
+          const as = getActions();
+          item = new SlideView.default({
+            container,
+            className: 'slideview-action',
+            content: getContent(),
+            friction: +inputFriction.value,
+            rebounce: +inputRebounce.value,
+            duration: +inputDuration.value,
+            timing: inputTiming.value,
+            leftActions: as.left,
+            rightActions: as.right,
+          });
+          item.on('show', (e) => {
+            info.innerHTML = `item-show:${e.direction}`;
+            console.log(info.innerHTML);
+          });
+          item.on('hide', () => {
+            info.innerHTML = 'item-hide';
+            console.log(info.innerHTML);
+          });
+          item.on('buttonPress', (e) => {
+            info.innerHTML = `item-buttonPress: ${e.data && e.data.id}`;
+            if (item && item.element && e.data && e.data.del) {
+              const viewEl = item.element.parentNode;
+              viewEl.style.opacity = '1';
+              window.requestAnimationFrame(() => {
+                viewEl.style.opacity = '0';
+                viewEl.style.transition = 'opacity 0.8s';
+                viewEl.ontransitionend = (ee) => {
+                  if (ee.target === viewEl && ee.propertyName === 'opacity') {
+                    viewEl.ontransitionend = null;
+                    item && item.destory();
+                    viewEl.style.opacity = '1';
+                    viewEl.style.transition = '';
+                  }
+                };
+              });
+            }
+          });
+          item.on('buttonConfirm', (e) => {
+            info.innerHTML = `item-buttonConfirm: ${e.data && e.data.id}`;
+            console.log(info.innerHTML);
+          });
+          item.on('press', () => {
+            container.classList.add('active');
+            info.innerHTML = 'item-press';
+            console.log(info.innerHTML);
+          });
+          item.on('longPress', () => {
+            container.classList.remove('active');
+            info.innerHTML = 'item-longPress';
+            console.log(info.innerHTML);
+          });
+          item.on('doublePress', () => {
+            info.innerHTML = 'item-doublePress';
+            console.log(info.innerHTML);
+          });
+        };
+        actions.onclick = () => {
+          if (!item) {
+            return;
+          }
+          const as = getActions();
+          // 如果某一个没有按钮，会删除
+          item.setActions(as.left, 'left');
+          item.setActions(as.right, 'right');
+        };
+        destory.onclick = () => {
+          if (!item) {
+            return;
+          }
+          item.destory();
+          item = null;
+          ID = 0;
+        };
+        content.onclick = () => {
+          if (!item) {
+            return;
+          }
+          item.setContent(getContent());
+        };
+        rebounce.onclick = () => {
+          if (!item) {
+            return;
+          }
+          item.setRebounce(+inputRebounce.value);
+        };
+        friction.onclick = () => {
+          if (!item) {
+            return;
+          }
+          item.setFriction(+inputFriction.value);
+        };
+        duration.onclick = () => {
+          if (!item) {
+            return;
+          }
+          item.setDuration(+inputDuration.value);
+        };
+        timing.onclick = () => {
+          if (!item) {
+            return;
+          }
+          item.setTiming(inputTiming.value);
+        };
+        leftThreshold.onclick = () => {
+          if (!item) {
+            return;
+          }
+          item.setThreshold(+inputLeftThreshold.value, 'left');
+        };
+        rightThreshold.onclick = () => {
+          if (!item) {
+            return;
+          }
+          item.setThreshold(+inputRightThreshold.value, 'right');
+        };
+        leftDisable.onclick = () => {
+          if (!item) {
+            return;
+          }
+          item.setDisable(inputLeftDisable.checked, 'left');
+        };
+        rightDisable.onclick = () => {
+          if (!item) {
+            return;
+          }
+          item.setDisable(inputRightDisable.checked, 'right');
+        };
+        leftOvershoot.onclick = () => {
+          if (!item) {
+            return;
+          }
+          item.setOvershoot(inputLeftOvershoot.checked, 'left');
+        };
+        rightOvershoot.onclick = () => {
+          if (!item) {
+            return;
+          }
+          item.setOvershoot(inputRightOvershoot.checked, 'right');
+        };
+        showLeft.onclick = () => {
+          if (!item) {
+            return;
+          }
+          item.show('left');
+        };
+        showRight.onclick = () => {
+          if (!item) {
+            return;
+          }
+          item.show('right');
+        };
+        hide.onclick = () => {
+          if (!item) {
+            return;
+          }
+          item.hide();
+        };
+
+        create.click();
+      })();
+    </script>
+  </body>
+</html>

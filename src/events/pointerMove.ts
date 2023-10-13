@@ -6,21 +6,22 @@
  * @Description: ******
  */
 
-import { type GEvent } from '@huangjs888/gesture';
+import { type IGestureEvent } from '@huangjs888/gesture';
 import { performDamping } from '@huangjs888/damping';
 import type SlideView from '../index';
 import { transform } from '../transform';
 import { overshootChange } from '../overshoot';
 import { confirmStyle, confirmCancel } from '../confirm';
 
-export default function pointerMove(this: SlideView, e: GEvent) {
-  const { pointers, currentTarget } = e;
+export default function pointerMove(this: SlideView, e: IGestureEvent) {
+  const { element } = this;
+  const { pointers } = e;
   // 找出变化（移动）的手指
   let pointer = null;
   for (let i = 0; i < pointers.length; i++) {
     const p = pointers[i];
     // 当前这个是主手指，并且这个手指在变化（移动）
-    if (p.changed && `${p.identifier}` === currentTarget.getAttribute('data-identifier')) {
+    if (p.changed && (!element || `${p.identifier}` === element.getAttribute('data-identifier'))) {
       pointer = p;
       break;
     }

@@ -2,20 +2,21 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-04 10:10:02
+ * @LastEditTime: 2023-10-13 09:34:00
  * @Description: ******
  */
 
-import { type GEvent } from '@huangjs888/gesture';
+import { type IGestureEvent } from '@huangjs888/gesture';
+import { setStyle } from '@huangjs888/lightdom';
 import { onOnceTransitionEnd } from './index';
-import { type Direction, type MergeAction, type Confirm, type IType } from '../index';
+import { type IDirection, type MergeAction, type Confirm, type IType } from '../index';
 import type SlideView from '../index';
 import { transform, cTransform } from '../transform';
 import { overshootChange } from '../overshoot';
 import { confirmStyle } from '../confirm';
-import { setStyle, findTarget } from '../util';
+import { findTarget } from '../util';
 
-export default function buttonPress(this: SlideView, event: GEvent, direction: Direction) {
+export default function buttonPress(this: SlideView, event: IGestureEvent, direction: IDirection) {
   const { element, leftActions, rightActions, rebounce } = this;
   if (
     this._translate === 0 ||
@@ -24,11 +25,8 @@ export default function buttonPress(this: SlideView, event: GEvent, direction: D
   ) {
     return;
   }
-  const { sourceEvent, currentTarget } = event;
-  const target = findTarget(
-    sourceEvent,
-    (t) => t !== currentTarget && !t.getAttribute('data-index'),
-  );
+  const { sourceEvent } = event;
+  const target = findTarget(sourceEvent, (t) => t !== element && !t.getAttribute('data-index'));
   const index = +(target.getAttribute('data-index') || -1);
   const actions: MergeAction | null = direction === 'left' ? leftActions : rightActions;
   if (index < 0 || !actions || actions.disable) {

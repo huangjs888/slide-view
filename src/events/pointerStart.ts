@@ -2,23 +2,24 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-04 15:16:50
+ * @LastEditTime: 2023-10-13 09:48:27
  * @Description: ******
  */
 
-import { type GEvent } from '@huangjs888/gesture';
+import { type IGestureEvent } from '@huangjs888/gesture';
 import { revokeDamping } from '@huangjs888/damping';
 import type SlideView from '../index';
 
-export default function pointerStart(this: SlideView, e: GEvent) {
-  const { pointers, currentTarget } = e;
+export default function pointerStart(this: SlideView, e: IGestureEvent) {
+  const { element } = this;
+  const { pointers } = e;
   // data-identifier存在，表示是已经有指点放上去了
-  if (currentTarget.getAttribute('data-identifier')) {
+  if (element && element.getAttribute('data-identifier')) {
     return;
   }
   // 设置第一个为主手指
   const pointer = pointers[0];
-  currentTarget.setAttribute('data-identifier', `${pointer.identifier}`);
+  element && element.setAttribute('data-identifier', `${pointer.identifier}`);
   const point = pointer.current;
   const { leftActions, rightActions, friction } = this;
   if ((!leftActions || leftActions.disable) && (!rightActions || rightActions.disable)) {

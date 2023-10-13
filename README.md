@@ -2,12 +2,15 @@
  * @Author: Huangjs
  * @Date: 2021-05-10 15:55:29
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-04 16:41:46
+ * @LastEditTime: 2023-10-13 14:00:43
  * @Description: ******
 -->
 ## slide-view
+
 H5列表左右滑动操作
+
 ### 使用方法
+
 ```html
   <body>
     <h2>滑动操作示例</h2>
@@ -16,7 +19,8 @@ H5列表左右滑动操作
     </div>
   </body>
 ```
-```javascript
+
+```js
 
   import SlideView from '@huangjs888/slide-view';
 
@@ -115,5 +119,10 @@ H5列表左右滑动操作
   });
 
 ```
+
+### react 使用方法
+
+请参考 example/src/SlideView.tsx,  example/src/app.tsx
+
 
 在线预览地址:[https://huangjs888.github.io/slide-view/](https://huangjs888.github.io/slide-view/ "预览")

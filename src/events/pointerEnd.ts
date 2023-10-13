@@ -6,17 +6,18 @@
  * @Description: ******
  */
 
-import { type GEvent } from '@huangjs888/gesture';
+import { type IGestureEvent } from '@huangjs888/gesture';
 import type SlideView from '../index';
 import { transform } from '../transform';
 
-export default function pointerEnd(this: SlideView, e: GEvent) {
-  const { leavePointers, currentTarget } = e;
+export default function pointerEnd(this: SlideView, e: IGestureEvent) {
+  const { element } = this;
+  const { leavePointers } = e;
   // 从抬起的手指中查找
   let pointer = null;
   for (let i = 0; i < leavePointers.length; i++) {
     const p = leavePointers[i];
-    if (`${p.identifier}` === currentTarget.getAttribute('data-identifier')) {
+    if (!element || `${p.identifier}` === element.getAttribute('data-identifier')) {
       pointer = p;
       break;
     }
@@ -25,7 +26,7 @@ export default function pointerEnd(this: SlideView, e: GEvent) {
   if (!pointer) {
     return;
   }
-  currentTarget.setAttribute('data-identifier', '');
+  element && element.setAttribute('data-identifier', '');
   const currentPoint = pointer.current;
   const { leftActions, rightActions } = this;
   if (
