@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2021-10-21 16:11:29
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-21 14:49:05
+ * @LastEditTime: 2023-10-17 09:22:25
  * @Description: ******
  */
 
@@ -24,7 +24,7 @@ module.exports = {
   output: {
     filename: `[name]${NODE_ENV === 'production' ? '.min' : ''}.js`,
     library: {
-      name: modname === 'umd' ? 'SlideView' : undefined,
+      name: modname === 'umd' ? 'RawSlideView' : undefined,
       type: modname,
     },
     path: resolve(__dirname, pathname),
@@ -52,5 +52,26 @@ module.exports = {
     extensions: ['.ts', '.js'],
   },
   target: ['web', 'es5'], // webpack构建时候添加的代码片段按照web平台的es5输出
+  /* // 不打包@huangjs888/gesture, @huangjs888/gesture/emitter, @huangjs888/lightdom
+  externals: {
+    '@huangjs888/gesture': {
+      commonjs2: '@huangjs888/gesture',
+      commonjs: '@huangjs888/gesture',
+      amd: '@huangjs888/gesture',
+      root: 'RawGesture', // 指向全局变量
+    },
+    '@huangjs888/gesture/emitter': {
+      commonjs2: '@huangjs888/gesture/emitter',
+      commonjs: '@huangjs888/gesture/emitter',
+      amd: '@huangjs888/gesture/emitter',
+      root: 'EventEmitter', // 指向全局变量
+    },
+    '@huangjs888/lightdom': {
+      commonjs2: '@huangjs888/lightdom',
+      commonjs: '@huangjs888/lightdom',
+      amd: '@huangjs888/lightdom',
+      root: 'LightDom', // 指向全局变量
+    },
+  }, */
   plugins: [new webpack.optimize.AggressiveMergingPlugin()],
 };

@@ -2,13 +2,13 @@
  * @Author: Huangjs
  * @Date: 2023-08-30 11:09:21
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-10-12 17:47:37
+ * @LastEditTime: 2023-10-17 09:24:32
  * @Description: ******
  */
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import SlideView, { type ITiming, type IEvent, type IActionOption } from '@huangjs888/slide-view';
+import { SlideView, type ITiming, type IEvent, type IActionOption } from '@huangjs888/slide-view';
 
 export * from '@huangjs888/slide-view';
 

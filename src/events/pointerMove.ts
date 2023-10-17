@@ -8,7 +8,7 @@
 
 import { type IGestureEvent } from '@huangjs888/gesture';
 import { performDamping } from '@huangjs888/damping';
-import type SlideView from '../index';
+import type SlideView from '../slideview';
 import { transform } from '../transform';
 import { overshootChange } from '../overshoot';
 import { confirmStyle, confirmCancel } from '../confirm';

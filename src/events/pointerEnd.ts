@@ -7,7 +7,7 @@
  */
 
 import { type IGestureEvent } from '@huangjs888/gesture';
-import type SlideView from '../index';
+import type SlideView from '../slideview';
 import { transform } from '../transform';
 
 export default function pointerEnd(this: SlideView, e: IGestureEvent) {

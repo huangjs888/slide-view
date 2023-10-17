@@ -6,7 +6,7 @@
  * @Description: ******
  */
 
-import SlideView, { type ITiming, type IEvent, type IActionOption } from '@huangjs888/slide-view';
+import { SlideView, type ITiming, type IEvent, type IActionOption } from '@huangjs888/slide-view';
 import './index.css';
 
 let ID = 0;

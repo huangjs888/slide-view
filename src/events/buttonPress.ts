@@ -10,7 +10,7 @@ import { type IGestureEvent } from '@huangjs888/gesture';
 import { setStyle } from '@huangjs888/lightdom';
 import { onOnceTransitionEnd } from './index';
 import { type IDirection, type MergeAction, type Confirm, type IType } from '../index';
-import type SlideView from '../index';
+import type SlideView from '../slideview';
 import { transform, cTransform } from '../transform';
 import { overshootChange } from '../overshoot';
 import { confirmStyle } from '../confirm';

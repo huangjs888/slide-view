@@ -9,7 +9,7 @@
 import EventTarget from '@huangjs888/gesture/emitter';
 import type { IGestureEvent } from '@huangjs888/gesture';
 import { type IElement, getElement, createElement, cssInject } from '@huangjs888/lightdom';
-import bindGesture, { onOnceTransitionEnd } from './events';
+import { bindGesture, onOnceTransitionEnd } from './events';
 import { transform } from './transform';
 import { overshootChange } from './overshoot';
 import { confirmStyle, confirmCancel } from './confirm';

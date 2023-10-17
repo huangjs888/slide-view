@@ -2,11 +2,11 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-03 14:42:44
+ * @LastEditTime: 2023-10-16 16:01:23
  * @Description: ******
  */
 
-import Gesture from '@huangjs888/gesture';
+import { Gesture } from '@huangjs888/gesture';
 import longTap from './longTap';
 import tap from './tap';
 import doubleTap from './doubleTap';
@@ -15,7 +15,7 @@ import pointerMove from './pointerMove';
 import pointerEnd from './pointerEnd';
 import type SlideView from '../slideview';
 
-export default function bindGesture(this: SlideView, element: HTMLElement) {
+export function bindGesture(this: SlideView, element: HTMLElement) {
   // 绑定手势
   const gesture = new Gesture(element);
   gesture.on('pointerStart', pointerStart.bind(this));

@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2021-10-15 15:24:21
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-04-11 11:33:28
+ * @LastEditTime: 2023-10-17 09:26:56
  * @Description: ******
 -->
 <!doctype html>
@@ -13,7 +13,7 @@
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scaleable=no"
       name="viewport" />
     <title>滑动删除</title>
-    <script src="../dist/slide-view.min.js"></script>
+    <script src="../../dist/slide-view.min.js"></script>
     <style>
       html,
       body {
@@ -510,7 +510,7 @@
             ID = 0;
           }
           const as = getActions();
-          item = new SlideView.default({
+          item = new window.RawSlideView.SlideView({
             container,
             className: 'slideview-action',
             content: getContent(),

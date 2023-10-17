@@ -8,7 +8,7 @@
 
 import { type IGestureEvent } from '@huangjs888/gesture';
 import { revokeDamping } from '@huangjs888/damping';
-import type SlideView from '../index';
+import type SlideView from '../slideview';
 
 export default function pointerStart(this: SlideView, e: IGestureEvent) {
   const { element } = this;

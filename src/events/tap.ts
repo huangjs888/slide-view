@@ -8,7 +8,7 @@
 
 import { type IGestureEvent } from '@huangjs888/gesture';
 import buttonPress from './buttonPress';
-import type SlideView from '../index';
+import type SlideView from '../slideview';
 import { findTarget } from '../util';
 
 export default function tap(this: SlideView, e: IGestureEvent) {
