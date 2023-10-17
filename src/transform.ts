@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-04 10:19:55
+ * @LastEditTime: 2023-10-17 17:02:13
  * @Description: ******
  */
 
@@ -137,6 +137,14 @@ export const transform = function transform(
   };
   // move事件发生，放入下一帧执行（move的时候使用这个节能而且不抖动）
   window.requestAnimationFrame(() => {
+    this.emit('transform', {
+      currentTarget: contentEl,
+      timestamp: Date.now(),
+      sourceEvent: null,
+      data: {
+        translate,
+      },
+    });
     setStyle(contentEl, {
       transform: `translate3d(${translate}px, 0, 0)`,
       transition,

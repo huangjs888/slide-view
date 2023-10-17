@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-10-13 15:00:36
+ * @LastEditTime: 2023-10-17 16:44:03
  * @Description: ******
  */
 
@@ -87,10 +87,42 @@ class SlideView extends EventTarget<IType, IEvent> {
     this.setActions(leftActions, 'left');
     this.setActions(rightActions, 'right');
     // 浏览器窗口变化重置
+    const updateActions = (actions: MergeAction): MergeAction => {
+      let tWidth = 0;
+      let tGap = 0;
+      const newItems = actions.items.map(({ element: el, gap, fixedGap, ...restItem }) => {
+        const { width: w } = el.getBoundingClientRect();
+        let [leftGap, rightGap] = gap;
+        leftGap = Math.min(w, Math.max(leftGap, 0));
+        rightGap = Math.min(w, Math.max(rightGap, 0));
+        tWidth += w + leftGap + rightGap;
+        tGap += leftGap + rightGap;
+        return {
+          ...restItem,
+          element: el,
+          width: w,
+          gap: [leftGap, rightGap],
+          fixedGap: leftGap === 0 && rightGap === 0 ? false : fixedGap, // 左右gap都为0的情况，固定gap无意义
+        };
+      });
+      return {
+        ...actions,
+        threshold: Math.min(tWidth, Math.max(actions.threshold, 0)),
+        width: tWidth,
+        gap: tGap,
+        items: newItems,
+      };
+    };
     const resize = () => {
       const { width, left } = element.getBoundingClientRect();
       this._width = width;
       this._offset = left;
+      if (this.leftActions) {
+        this.leftActions = updateActions(this.leftActions);
+      }
+      if (this.rightActions) {
+        this.rightActions = updateActions(this.rightActions);
+      }
     };
     window.addEventListener('resize', resize);
     this._unbind = () => {
@@ -228,7 +260,7 @@ class SlideView extends EventTarget<IType, IEvent> {
         ) as HTMLElement;
         let tWidth = 0;
         let tGap = 0;
-        let newItems = items.map((item, index) => {
+        const newItems = items.map((item, index) => {
           const { gap = 0, fixedGap = false, text, icon } = item;
           const element = createElement(
             {
@@ -283,7 +315,7 @@ class SlideView extends EventTarget<IType, IEvent> {
           return {
             ...tItem,
             gap: [leftGap, rightGap],
-            fixedGap: leftGap === 0 && rightGap === 0 ? false : fixedGap, // 左右gap都为0的情况，gudinggap无意义
+            fixedGap: leftGap === 0 && rightGap === 0 ? false : fixedGap, // 左右gap都为0的情况，固定gap无意义
             width,
           };
         });
@@ -351,6 +383,13 @@ class SlideView extends EventTarget<IType, IEvent> {
       const factor = __direction === 'left' ? 1 : -1;
       const maxTranslate = !actions ? 0 : actions.width * factor;
       if (this._translate === maxTranslate) {
+        this.emit('show', {
+          direction: __direction,
+          currentTarget: contentEl,
+          timestamp: Date.now(),
+          sourceEvent: null,
+        });
+        this._direction = __direction;
         resolve();
         return;
       }
@@ -366,15 +405,13 @@ class SlideView extends EventTarget<IType, IEvent> {
         if (!rebSize) {
           onOnceTransitionEnd(contentEl, () => {
             resolve();
-            if (this._direction !== __direction) {
-              this.emit('show', {
-                direction: __direction,
-                currentTarget: contentEl,
-                timestamp: Date.now(),
-                sourceEvent: null,
-              });
-              this._direction = __direction;
-            }
+            this.emit('show', {
+              direction: __direction,
+              currentTarget: contentEl,
+              timestamp: Date.now(),
+              sourceEvent: null,
+            });
+            this._direction = __direction;
           });
         }
       };
@@ -395,13 +432,23 @@ class SlideView extends EventTarget<IType, IEvent> {
     const { contentEl, leftActions, rightActions } = this;
     if (
       this._destory ||
-      this._translate === 0 ||
       !contentEl ||
       ((!leftActions || leftActions.disable) && (!rightActions || rightActions.disable))
     ) {
       return Promise.resolve();
     }
     return new Promise<void>((resolve) => {
+      if (this._translate === 0) {
+        this.emit('hide', {
+          direction: 'none',
+          currentTarget: contentEl,
+          timestamp: Date.now(),
+          sourceEvent: null,
+        });
+        this._direction = 'none';
+        resolve();
+        return;
+      }
       this._translate = 0;
       transform.apply(this, [0]);
       // 在收起动画期间，连续执行隐藏方法，会主动cancel上一次transition，保证只执行最后一次
@@ -412,15 +459,13 @@ class SlideView extends EventTarget<IType, IEvent> {
           overshootChange.apply(this, [this._translate > 0 ? leftActions : rightActions]);
         }
         confirmCancel.apply(this, []);
-        if (this._direction !== 'none') {
-          this.emit('hide', {
-            direction: 'none',
-            currentTarget: contentEl,
-            timestamp: Date.now(),
-            sourceEvent: null,
-          });
-          this._direction = 'none';
-        }
+        this.emit('hide', {
+          direction: 'none',
+          currentTarget: contentEl,
+          timestamp: Date.now(),
+          sourceEvent: null,
+        });
+        this._direction = 'none';
       });
     });
   }
@@ -538,7 +583,8 @@ export type IType =
   | 'longPress'
   | 'doublePress'
   | 'buttonPress'
-  | 'buttonConfirm';
+  | 'buttonConfirm'
+  | 'transform';
 
 export type IEvent = {
   currentTarget: HTMLElement;

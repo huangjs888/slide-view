@@ -106,7 +106,7 @@ export type IOption = {
     leftActions?: IActionOption;
     rightActions?: IActionOption;
 };
-export type IType = 'show' | 'hide' | 'press' | 'longPress' | 'doublePress' | 'buttonPress' | 'buttonConfirm';
+export type IType = 'show' | 'hide' | 'press' | 'longPress' | 'doublePress' | 'buttonPress' | 'buttonConfirm' | 'transform';
 export type IEvent = {
     currentTarget: HTMLElement;
     timestamp: number;
