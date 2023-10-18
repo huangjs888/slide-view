@@ -1,6 +1,6 @@
 {
   "name": "@huangjs888/slide-view",
-  "version": "2.4.4",
+  "version": "2.4.5",
   "description": "Left-slide operations on lists, e.g. delete",
   "types": "./types/index.d.ts",
   "module": "./es/slide-view.min.js",
