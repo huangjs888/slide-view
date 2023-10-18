@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-10-17 16:44:03
+ * @LastEditTime: 2023-10-18 11:01:01
  * @Description: ******
  */
 
@@ -13,7 +13,7 @@ import { bindGesture, onOnceTransitionEnd } from './events';
 import { transform } from './transform';
 import { overshootChange } from './overshoot';
 import { confirmStyle, confirmCancel } from './confirm';
-import { getIconType } from './util';
+import { debounce, getIconType } from './util';
 import css from './css';
 
 cssInject('hjs-slide-view-style', css);
@@ -23,15 +23,15 @@ class SlideView extends EventTarget<IType, IEvent> {
   contentEl: HTMLElement | null = null; // 内容元素
   leftEl: HTMLElement | null = null; // 左按钮元素
   rightEl: HTMLElement | null = null; // 右按钮元素
-  leftActions: MergeAction | null = null; // 按钮集合
-  rightActions: MergeAction | null = null; // 按钮集合
+  leftActions: IMergeAction | null = null; // 按钮集合
+  rightActions: IMergeAction | null = null; // 按钮集合
   friction: number = 0.5; // 摩擦因子(0-1的值)
   rebounce: number = 12; // 弹性尺寸
   duration: number = 0.4; // 按钮滑出动画时间（秒级）
   timing: ITiming = 'ease'; // 滑动时动画的函数
   _destory: boolean = false; // 是否销毁
   _direction: IDirection = 'none'; // 当前展示的是哪个方向按钮
-  _confirming: Confirm | null = null; // 当前正在确认的按钮
+  _confirming: IConfirm | null = null; // 当前正在确认的按钮
   _overshooting: boolean = false; // 当前是否处于overshoot状态
   _translate: number = 0; // 元素当前位移值
   _width: number = 0; // 视图宽度
@@ -84,46 +84,16 @@ class SlideView extends EventTarget<IType, IEvent> {
     this.setRebounce(rebounce);
     this.setDuration(duration);
     this.setTiming(timing);
-    this.setActions(leftActions, 'left');
-    this.setActions(rightActions, 'right');
+    this.setActions(leftActions || {}, 'left');
+    this.setActions(rightActions || {}, 'right');
     // 浏览器窗口变化重置
-    const updateActions = (actions: MergeAction): MergeAction => {
-      let tWidth = 0;
-      let tGap = 0;
-      const newItems = actions.items.map(({ element: el, gap, fixedGap, ...restItem }) => {
-        const { width: w } = el.getBoundingClientRect();
-        let [leftGap, rightGap] = gap;
-        leftGap = Math.min(w, Math.max(leftGap, 0));
-        rightGap = Math.min(w, Math.max(rightGap, 0));
-        tWidth += w + leftGap + rightGap;
-        tGap += leftGap + rightGap;
-        return {
-          ...restItem,
-          element: el,
-          width: w,
-          gap: [leftGap, rightGap],
-          fixedGap: leftGap === 0 && rightGap === 0 ? false : fixedGap, // 左右gap都为0的情况，固定gap无意义
-        };
-      });
-      return {
-        ...actions,
-        threshold: Math.min(tWidth, Math.max(actions.threshold, 0)),
-        width: tWidth,
-        gap: tGap,
-        items: newItems,
-      };
-    };
-    const resize = () => {
+    const resize = debounce(() => {
       const { width, left } = element.getBoundingClientRect();
       this._width = width;
       this._offset = left;
-      if (this.leftActions) {
-        this.leftActions = updateActions(this.leftActions);
-      }
-      if (this.rightActions) {
-        this.rightActions = updateActions(this.rightActions);
-      }
-    };
+      this.setActions(this.leftActions || {}, 'left');
+      this.setActions(this.rightActions || {}, 'right');
+    }, 300);
     window.addEventListener('resize', resize);
     this._unbind = () => {
       gesture.destory();
@@ -228,21 +198,14 @@ class SlideView extends EventTarget<IType, IEvent> {
       }
     }
   }
-  setActions(actions: IActionOption = {}, direction: IDirection = 'both') {
+  setActions(actions: IActionOption | IMergeAction, direction: IDirection = 'both') {
     if (this._destory || direction === 'none') {
       return;
     }
-    // actions: 不传为默认值{}，不传，传其它，只要没有items的，都认为是删除按钮
     const _setActions = (_direction: 'left' | 'right') => {
       const parentEl = this[`${_direction}El`];
-      if (!parentEl) {
-        return;
-      }
-      parentEl.innerHTML = '';
-      this[`${_direction}Actions`] = null;
       if (actions.items && actions.items.length > 0) {
         const {
-          className,
           style = 'accordion',
           disable = false,
           overshoot = false,
@@ -251,72 +214,74 @@ class SlideView extends EventTarget<IType, IEvent> {
           threshold = 40,
           items,
         } = actions;
-        const tElement = createElement(
-          {
-            className: ['hjs-slideview__actions', className || ''],
-          },
-          null,
-          parentEl,
-        ) as HTMLElement;
+        let tElement = (actions as IMergeAction).element;
+        if (!tElement) {
+          parentEl && (parentEl.innerHTML = '');
+          tElement = createElement(
+            {
+              className: ['hjs-slideview__actions', (actions as IActionOption).className || ''],
+            },
+            null,
+            parentEl,
+          ) as HTMLElement;
+        }
         let tWidth = 0;
         let tGap = 0;
         const newItems = items.map((item, index) => {
-          const { gap = 0, fixedGap = false, text, icon } = item;
-          const element = createElement(
-            {
-              className: 'hjs-slideview__action',
-              attrs: {
-                dataIndex: String(index),
+          let element = (item as IMergeActionItem).element;
+          let wrapper = (item as IMergeActionItem).wrapper;
+          if (!element) {
+            const { text, icon } = item as IActionItem;
+            element = createElement(
+              {
+                className: 'hjs-slideview__action',
+                attrs: {
+                  dataIndex: String(index),
+                },
               },
-            },
-            [
-              icon
-                ? createElement(getIconType(icon), {
-                    className: 'hjs-slideview__action__icon',
-                  })
-                : null,
-              text
-                ? createElement('span', {
-                    className: 'hjs-slideview__action__text',
-                  })
-                : null,
-            ],
-          ) as HTMLElement;
-          const wrapper = createElement(
-            {
-              className: 'hjs-slideview__action__wrapper',
-            },
-            element,
-            tElement,
-          ) as HTMLElement;
-          const tItem: MergeActionItem = {
-            ...item,
-            wrapper,
-            element,
-            width: 0,
-            gap: [0, 0],
-            fixedGap,
-          };
-          // 设置非确认时的样式和内容
-          confirmStyle(tItem);
-          const { width } = element.getBoundingClientRect();
-          let leftGap = 0;
-          let rightGap = 0;
-          if (typeof gap === 'number') {
-            leftGap = gap;
-            rightGap = gap;
-          } else {
-            [leftGap, rightGap] = gap;
+              [
+                icon
+                  ? createElement(getIconType(icon), {
+                      className: 'hjs-slideview__action__icon',
+                    })
+                  : null,
+                text
+                  ? createElement('span', {
+                      className: 'hjs-slideview__action__text',
+                    })
+                  : null,
+              ],
+            ) as HTMLElement;
+            wrapper = createElement(
+              {
+                className: 'hjs-slideview__action__wrapper',
+              },
+              element,
+              tElement,
+            ) as HTMLElement;
+            // 设置非确认时的样式和内容
+            confirmStyle({
+              ...item,
+              wrapper,
+              element,
+              width: 0,
+              gap: [0, 0],
+              fixedGap: false,
+            });
           }
-          leftGap = Math.min(width, Math.max(leftGap, 0));
-          rightGap = Math.min(width, Math.max(rightGap, 0));
+          const { gap = 0, fixedGap = false } = item;
+          const { width } = element.getBoundingClientRect();
+          const leftGap = Math.min(width, Math.max(typeof gap === 'number' ? gap : gap[0], 0));
+          const rightGap = Math.min(width, Math.max(typeof gap === 'number' ? gap : gap[1], 0));
           tWidth += width + leftGap + rightGap;
           tGap += leftGap + rightGap;
           return {
-            ...tItem,
+            ...item,
+            wrapper,
+            element,
+            width,
             gap: [leftGap, rightGap],
             fixedGap: leftGap === 0 && rightGap === 0 ? false : fixedGap, // 左右gap都为0的情况，固定gap无意义
-            width,
           };
         });
         this[`${_direction}Actions`] = {
@@ -331,6 +296,9 @@ class SlideView extends EventTarget<IType, IEvent> {
           gap: tGap,
           items: newItems,
         };
+      } else {
+        parentEl && (parentEl.innerHTML = '');
+        this[`${_direction}Actions`] = null;
       }
     };
     const _setActionsAfterCollapse = (_direction: 'left' | 'right') => {
@@ -505,14 +473,14 @@ export type ITiming =
   | 'ease-in-out'
   | `cubic-bezier(${number},${number},${number},${number})`;
 
-export type ActionStyle = 'drawer' | 'accordion';
+export type IActionStyle = 'drawer' | 'accordion';
 
-export type Confirm = {
+export type IConfirm = {
   direction: IDirection;
   index: number;
 };
 
-export type MergeActionItem = {
+export type IMergeActionItem = {
   wrapper: HTMLElement; // 当前按钮包裹元素
   element: HTMLElement; // 当前按钮元素
   width: number; // 当前按钮的宽度
@@ -520,8 +488,8 @@ export type MergeActionItem = {
   fixedGap: boolean; //拉伸按钮时，是否固定间距
 } & IActionItem;
 
-export type MergeAction = {
-  style: ActionStyle; // 按钮展示的风格
+export type IMergeAction = {
+  style: IActionStyle; // 按钮展示的风格
   disable: boolean; // 禁用按钮
   threshold: number; // 阈值（超过这个阈值时抬起后所有按钮自动滑出，否则收起）
   overshoot: boolean; // 滑动超出(仅限最后一个按钮)
@@ -530,7 +498,7 @@ export type MergeAction = {
   element: HTMLElement; // 所有按钮父元素
   width: number; // 按钮父元素宽度，即所有按钮宽度加间距宽度
   gap: number; // 元素之间的间距之和
-  items: MergeActionItem[]; // 按钮配置
+  items: IMergeActionItem[]; // 按钮配置
 };
 
 export type IActionItem = {
@@ -555,7 +523,7 @@ export type IActionItem = {
 
 export type IActionOption = {
   className?: string; // 按钮自定义样式
-  style?: ActionStyle; // 按钮展示的风格
+  style?: IActionStyle; // 按钮展示的风格
   disable?: boolean; // 禁用按钮
   threshold?: number; // 阈值（超过这个阈值时抬起后所有按钮自动滑出，否则收起）
   overshoot?: boolean; // 滑动超出(仅限最后一个按钮)

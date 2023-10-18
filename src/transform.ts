@@ -2,17 +2,17 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-10-17 17:02:13
+ * @LastEditTime: 2023-10-18 10:40:33
  * @Description: ******
  */
 
 import { setStyle } from '@huangjs888/lightdom';
 import type SlideView from './slideview';
-import { type MergeAction, type Confirm } from './slideview';
+import { type IMergeAction, type IConfirm } from './slideview';
 
 export const cTransform = function cTransform(
   this: SlideView,
-  confirm: Confirm,
+  confirm: IConfirm,
   translate: number = 0,
 ) {
   const { contentEl, leftActions, rightActions, duration, timing } = this;
@@ -26,7 +26,7 @@ export const cTransform = function cTransform(
   const { index, direction } = confirm;
   // 这里注意：在调用hideButton隐藏按钮之后再执行该恢复方法，_translate等于0了，所以无需再判断
   const factor = this._translate === 0 ? 0 : this._translate / Math.abs(this._translate);
-  const aTransform = ({ style, items }: MergeAction) => {
+  const aTransform = ({ style, items }: IMergeAction) => {
     let delta = 0;
     if (style === 'drawer') {
       delta = -this._translate;
@@ -93,7 +93,7 @@ export const transform = function transform(
   const transition = duration <= 0 ? '' : `transform ${duration}s ${timing} 0s`;
   const wTransition =
     duration <= 0 ? '' : `width ${duration}s ${timing} 0s, transform ${duration}s ${timing} 0s`;
-  const aTransform = ({ style, items, element, width: tWidth, gap: tGap }: MergeAction) => {
+  const aTransform = ({ style, items, element, width: tWidth, gap: tGap }: IMergeAction) => {
     let styleObj = {};
     let xMove = translate;
     let delta = 0;

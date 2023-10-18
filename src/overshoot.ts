@@ -8,9 +8,9 @@
 
 import { setStyle } from '@huangjs888/lightdom';
 import type SlideView from './slideview';
-import { type MergeAction } from './slideview';
+import { type IMergeAction } from './slideview';
 
-export const overshootChange = function (this: SlideView, actions: MergeAction | null) {
+export const overshootChange = function (this: SlideView, actions: IMergeAction | null) {
   if (actions && !actions.disable) {
     const item = actions.items[actions.items.length - 1];
     setStyle(item.wrapper, {

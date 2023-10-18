@@ -8,10 +8,10 @@
 
 import { setStyle, addClass, removeClass } from '@huangjs888/lightdom';
 import type SlideView from './slideview';
-import { type MergeActionItem } from './slideview';
+import { type IMergeActionItem } from './slideview';
 import { getIconType } from './util';
 
-export const confirmStyle = function (item: MergeActionItem, isConfirm: boolean = false) {
+export const confirmStyle = function (item: IMergeActionItem, isConfirm: boolean = false) {
   const {
     wrapper,
     element,

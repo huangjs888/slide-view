@@ -2,9 +2,22 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-03 17:24:27
+ * @LastEditTime: 2023-10-18 11:00:19
  * @Description: ******
  */
+
+export function debounce(func: () => void, wait = 0) {
+  // 缓存一个定时器id
+  let timer: number = 0;
+  return (...args: any) => {
+    // 频繁每次调用，则清空定时器，忽略实际函数，然后开启新的计时器
+    if (timer) clearTimeout(timer);
+    // wait时间内没有再调用，则执行实际函数
+    timer = +setTimeout(() => {
+      func.apply(null, args);
+    }, wait);
+  };
+}
 
 export function getIconType(url: string) {
   if (url) {

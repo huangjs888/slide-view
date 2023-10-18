@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-08-04 15:37:44
+ * @LastEditTime: 2023-10-18 14:21:04
  * @Description: ******
  */
 
@@ -51,6 +51,10 @@ export default function pointerMove(this: SlideView, e: IGestureEvent) {
   // 这个判断是因为手势里默认移动距离在3px以内不算移动（手势里是移动距离，这里扩大到x方向距离）
   if (this._startAngle !== 1 || Math.abs(currentX) <= 3) {
     return;
+  }
+  if (e.sourceEvent.cancelable) {
+    // 滑动的时候阻止默认行为
+    e.preventDefault();
   }
   // 滑动距离
   let translate = 0;
@@ -148,5 +152,4 @@ export default function pointerMove(this: SlideView, e: IGestureEvent) {
   if (!this._overshooting) {
     confirmCancel.apply(this, []);
   }
-  return;
 }

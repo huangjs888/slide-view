@@ -6,15 +6,15 @@ declare class SlideView extends EventTarget<IType, IEvent> {
     contentEl: HTMLElement | null;
     leftEl: HTMLElement | null;
     rightEl: HTMLElement | null;
-    leftActions: MergeAction | null;
-    rightActions: MergeAction | null;
+    leftActions: IMergeAction | null;
+    rightActions: IMergeAction | null;
     friction: number;
     rebounce: number;
     duration: number;
     timing: ITiming;
     _destory: boolean;
     _direction: IDirection;
-    _confirming: Confirm | null;
+    _confirming: IConfirm | null;
     _overshooting: boolean;
     _translate: number;
     _width: number;
@@ -35,7 +35,7 @@ declare class SlideView extends EventTarget<IType, IEvent> {
     setDisable(disable?: boolean, direction?: IDirection): void;
     setOvershoot(overshoot?: boolean, direction?: IDirection): void;
     setThreshold(threshold?: number, direction?: IDirection): void;
-    setActions(actions?: IActionOption, direction?: IDirection): void;
+    setActions(actions: IActionOption | IMergeAction, direction?: IDirection): void;
     toggle(direction?: IDirection): Promise<void>;
     show(direction?: IDirection): Promise<void>;
     hide(): Promise<void>;
@@ -43,20 +43,20 @@ declare class SlideView extends EventTarget<IType, IEvent> {
 }
 export type IDirection = 'left' | 'right' | 'both' | 'none';
 export type ITiming = 'linear' | 'ease' | 'ease-in' | 'ease-out' | 'ease-in-out' | `cubic-bezier(${number},${number},${number},${number})`;
-export type ActionStyle = 'drawer' | 'accordion';
-export type Confirm = {
+export type IActionStyle = 'drawer' | 'accordion';
+export type IConfirm = {
     direction: IDirection;
     index: number;
 };
-export type MergeActionItem = {
+export type IMergeActionItem = {
     wrapper: HTMLElement;
     element: HTMLElement;
     width: number;
     gap: number[];
     fixedGap: boolean;
 } & IActionItem;
-export type MergeAction = {
-    style: ActionStyle;
+export type IMergeAction = {
+    style: IActionStyle;
     disable: boolean;
     threshold: number;
     overshoot: boolean;
@@ -65,7 +65,7 @@ export type MergeAction = {
     element: HTMLElement;
     width: number;
     gap: number;
-    items: MergeActionItem[];
+    items: IMergeActionItem[];
 };
 export type IActionItem = {
     className?: string;
@@ -87,7 +87,7 @@ export type IActionItem = {
 };
 export type IActionOption = {
     className?: string;
-    style?: ActionStyle;
+    style?: IActionStyle;
     disable?: boolean;
     threshold?: number;
     overshoot?: boolean;

@@ -9,7 +9,7 @@
 import { type IGestureEvent } from '@huangjs888/gesture';
 import { setStyle } from '@huangjs888/lightdom';
 import { onOnceTransitionEnd } from './index';
-import { type IDirection, type MergeAction, type Confirm, type IType } from '../index';
+import { type IDirection, type IMergeAction, type IConfirm, type IType } from '../index';
 import type SlideView from '../slideview';
 import { transform, cTransform } from '../transform';
 import { overshootChange } from '../overshoot';
@@ -28,13 +28,13 @@ export default function buttonPress(this: SlideView, event: IGestureEvent, direc
   const { sourceEvent } = event;
   const target = findTarget(sourceEvent, (t) => t !== element && !t.getAttribute('data-index'));
   const index = +(target.getAttribute('data-index') || -1);
-  const actions: MergeAction | null = direction === 'left' ? leftActions : rightActions;
+  const actions: IMergeAction | null = direction === 'left' ? leftActions : rightActions;
   if (index < 0 || !actions || actions.disable) {
     return;
   }
   const elWidth = this._width;
   const factor = this._translate / Math.abs(this._translate);
-  const confirm: Confirm = { index, direction };
+  const confirm: IConfirm = { index, direction };
   const item = actions.items[index];
   const overshoot = index === actions.items.length - 1 && actions.overshoot;
   let eventType: IType = 'buttonPress';
