@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2021-05-10 15:55:29
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-10-13 14:00:43
+ * @LastEditTime: 2023-10-20 15:13:12
  * @Description: ******
 -->
 ## slide-view
@@ -22,7 +22,7 @@ H5列表左右滑动操作
 
 ```js
 
-  import SlideView from '@huangjs888/slide-view';
+  import { SlideView } from '@huangjs888/slide-view';
 
   const container = document.querySelectorAll('.slide-view-item')[0];
   const cell = document.createElement('div');

@@ -2,11 +2,11 @@
  * @Author: Huangjs
  * @Date: 2023-07-28 09:57:17
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-10-16 16:01:23
+ * @LastEditTime: 2023-10-20 15:26:08
  * @Description: ******
  */
 
-import { Gesture } from '@huangjs888/gesture';
+import Gesture from '@huangjs888/gesture';
 import longTap from './longTap';
 import tap from './tap';
 import doubleTap from './doubleTap';

@@ -1021,11 +1021,11 @@
 
 "@huangjs888/slide-view@file:..":
   "resolved" "file:.."
-  "version" "2.4.4"
+  "version" "2.4.5"
   dependencies:
     "@babel/runtime-corejs3" "^7.22.10"
     "@huangjs888/damping" "^2.2.1"
-    "@huangjs888/gesture" "^3.1.4"
+    "@huangjs888/gesture" "^3.2.0"
     "@huangjs888/lightdom" "^2.1.5"
 
 "@isaacs/cliui@^8.0.2":
