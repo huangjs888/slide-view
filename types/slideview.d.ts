@@ -35,7 +35,7 @@ declare class SlideView extends EventTarget<IType, IEvent> {
     setDisable(disable?: boolean, direction?: IDirection): void;
     setOvershoot(overshoot?: boolean, direction?: IDirection): void;
     setThreshold(threshold?: number, direction?: IDirection): void;
-    setActions(actions: IActionOption | IMergeAction, direction?: IDirection): void;
+    setActions(actions?: IActionOption | IMergeAction, direction?: IDirection): void;
     toggle(direction?: IDirection): Promise<void>;
     show(direction?: IDirection): Promise<void>;
     hide(): Promise<void>;

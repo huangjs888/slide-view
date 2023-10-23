@@ -2,7 +2,7 @@
  * @Author: Huangjs
  * @Date: 2023-02-13 15:22:58
  * @LastEditors: Huangjs
- * @LastEditTime: 2023-10-18 11:01:01
+ * @LastEditTime: 2023-10-23 11:00:16
  * @Description: ******
  */
 
@@ -84,8 +84,8 @@ class SlideView extends EventTarget<IType, IEvent> {
     this.setRebounce(rebounce);
     this.setDuration(duration);
     this.setTiming(timing);
-    this.setActions(leftActions || {}, 'left');
-    this.setActions(rightActions || {}, 'right');
+    this.setActions(leftActions, 'left');
+    this.setActions(rightActions, 'right');
     // 浏览器窗口变化重置
     const resize = debounce(() => {
       const { width, left } = element.getBoundingClientRect();
@@ -198,13 +198,13 @@ class SlideView extends EventTarget<IType, IEvent> {
       }
     }
   }
-  setActions(actions: IActionOption | IMergeAction, direction: IDirection = 'both') {
+  setActions(actions: IActionOption | IMergeAction = {}, direction: IDirection = 'both') {
     if (this._destory || direction === 'none') {
       return;
     }
     const _setActions = (_direction: 'left' | 'right') => {
       const parentEl = this[`${_direction}El`];
-      if (actions.items && actions.items.length > 0) {
+      if (actions && actions.items && actions.items.length > 0) {
         const {
           style = 'accordion',
           disable = false,
